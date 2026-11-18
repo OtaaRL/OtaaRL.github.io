@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OtaaRL — 3D Artist · Rocket League</title>
+<meta name="description" content="OtaaRL (Thomas Rubulotta) — 3D artist, motion designer et développeur web. Créations pour l'esport Rocket League.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,700;1,800;1,900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   DA "ROAD TRIP" : le site est un trajet en Fennec.
+   Bleu vs orange (les deux équipes de Rocket League),
+   panneaux d'interface façon menu de jeu, la voiture toujours visible.
+   ========================================================= */
+:root{
+  --bg:#05070e; --panel:rgba(8,11,20,.88); --panel2:#0f1424;
+  --fg:#ffffff; --soft:#c9d2e6; --mut:#8a95ad; --line:rgba(255,255,255,.1);
+  --blue:#2f7bff; --orange:#ff8a1f;
+  --head:'Barlow Condensed',sans-serif; --body:'Barlow',system-ui,sans-serif;
+  --pad:clamp(18px,4vw,64px); --cut:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a,button{color:inherit;text-decoration:none;font:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+::selection{background:var(--orange);color:#000}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+main{position:relative;z-index:2}
+.it{font-family:var(--head);font-style:italic;text-transform:uppercase}
+.label{font:700 .8rem/1 var(--head);letter-spacing:.18em;text-transform:uppercase;color:var(--orange)}
+.label.b{color:#7fb0ff}
+
+/* ---------- barre du haut : onglets façon menu de jeu ---------- */
+.top{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px var(--pad);background:linear-gradient(rgba(5,7,14,.9),rgba(5,7,14,0))}
+.brand{font:900 1.5rem/1 var(--head);font-style:italic;letter-spacing:.02em}
+.brand span{color:var(--orange)}
+.tabs{display:flex;gap:6px;list-style:none}
+.tabs a{display:block;transform:skewX(-14deg);padding:9px 20px;background:rgba(15,20,36,.75);border:1px solid var(--line);transition:.2s}
+.tabs a span{display:block;transform:skewX(14deg);font:700 .95rem/1 var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.tabs a:hover{border-color:rgba(255,255,255,.35)}
+.tabs a.on{background:var(--orange);border-color:var(--orange)}
+.tabs a.on span{color:#0a0a0a}
+
+/* ---------- le trajet (progression du scroll) ---------- */
+.route{position:fixed;left:calc(var(--pad) - 4px);top:50%;transform:translateY(-50%);z-index:40;height:min(56vh,460px);width:40px}
+.route .line{position:absolute;left:19px;top:0;bottom:0;width:2px;background:rgba(255,255,255,.14)}
+.route .line i{position:absolute;left:0;top:0;width:100%;height:0;background:linear-gradient(var(--blue),var(--orange))}
+.route ol{list-style:none;position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between}
+.route a{display:flex;align-items:center;gap:12px;height:40px}
+.route a i{width:12px;height:12px;margin-left:14px;transform:rotate(45deg);background:var(--bg);border:2px solid rgba(255,255,255,.4);transition:.2s}
+.route a span{font:700 .78rem/1 var(--head);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);opacity:0;transform:translateX(-6px);transition:.2s;white-space:nowrap}
+.route a:hover span,.route a.on span{opacity:1;transform:none}
+.route a.on i{background:var(--orange);border-color:var(--orange);box-shadow:0 0 14px var(--orange)}
+.route a.on span{color:#fff}
+
+/* ---------- HUD : vitesse + jauge de boost ---------- */
+.hud{position:fixed;right:var(--pad);bottom:22px;z-index:40;display:flex;align-items:flex-end;gap:14px;pointer-events:none}
+.spd{text-align:right;padding-bottom:8px}
+.spd b{display:block;font:900 2.6rem/1 var(--head);font-style:italic}
+.spd small{font:700 .72rem var(--head);letter-spacing:.2em;color:var(--mut)}
+.gauge{position:relative;width:92px;height:92px}
+.gauge svg{width:100%;height:100%;transform:rotate(135deg);overflow:visible}
+.gauge circle{fill:none;stroke-width:10;stroke-dasharray:235.6 314.2}
+.gauge .bg{stroke:rgba(255,255,255,.12)}
+.gauge .fg{stroke:var(--orange);filter:drop-shadow(0 0 6px var(--orange))}
+.gauge span{position:absolute;inset:0;display:grid;place-items:center;font:900 1.9rem/1 var(--head);font-style:italic;padding-bottom:4px}
+.gauge em{position:absolute;left:0;right:0;bottom:6px;text-align:center;font:700 .62rem var(--head);letter-spacing:.2em;font-style:normal;color:var(--orange)}
+.ss{position:absolute;right:0;bottom:calc(100% + 8px);font:900 1.5rem/1 var(--head);font-style:italic;letter-spacing:.08em;color:#fff;padding:6px 14px;background:linear-gradient(90deg,var(--blue),var(--orange));transform:skewX(-14deg);opacity:0;transition:opacity .2s}
+.ss.on{opacity:1}
+
+/* ---------- sections = étapes du trajet ---------- */
+section{min-height:100vh;display:flex;align-items:center;padding:110px var(--pad) 120px calc(var(--pad) + 74px);position:relative}
+.panel{position:relative;width:100%;max-width:520px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);padding:clamp(24px,3vw,36px);clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)))}
+.panel::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--orange))}
+h2{font:900 clamp(2.4rem,4.4vw,3.6rem)/.95 var(--head);font-style:italic;text-transform:uppercase;letter-spacing:-.005em;margin:10px 0 14px}
+.panel p{color:var(--soft)}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;transform:skewX(-14deg);padding:14px 26px;border:1px solid rgba(255,255,255,.3);background:rgba(15,20,36,.6);transition:.2s}
+.btn span{display:block;transform:skewX(14deg);font:800 1.02rem/1 var(--head);font-style:italic;letter-spacing:.1em;text-transform:uppercase}
+.btn:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+.btn.o{background:var(--orange);border-color:var(--orange);color:#0a0a0a}
+.btn.o:hover{background:#ffa04a;box-shadow:0 8px 30px -8px var(--orange)}
+.btn.b{background:var(--blue);border-color:var(--blue)}
+
+/* hero */
+#hero{padding-top:90px}
+#hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,7,14,.85),rgba(5,7,14,.45) 40%,transparent 65%);pointer-events:none}
+.hero{position:relative;max-width:640px;user-select:none;-webkit-user-select:none}
+h1{font:900 clamp(4.6rem,11vw,9.5rem)/.82 var(--head);font-style:italic;text-transform:uppercase;letter-spacing:-.01em;margin:16px 0 0}
+h1 span{color:var(--orange)}
+.stripe{display:flex;gap:6px;margin:22px 0 24px}
+.stripe i{height:6px;width:70px;transform:skewX(-30deg);background:var(--blue)}
+.stripe i+i{background:var(--orange)}
+.hero p{font-size:clamp(1.05rem,1.5vw,1.2rem);color:var(--soft);max-width:40ch;margin-bottom:30px}
+.hero p b{color:#fff;font-weight:600}
+.keys{display:flex;align-items:center;gap:10px;margin-top:36px;font:600 .9rem var(--body);color:var(--mut)}
+.keys kbd{font:800 .8rem/1 var(--head);padding:6px 9px;border:1px solid rgba(255,255,255,.3);border-bottom-width:3px;border-radius:4px;color:#fff}
+
+/* créations : le "garage" */
+.garage{max-width:760px}
+.gbig{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:end;margin-top:10px}
+.gbig .gimg{position:relative;aspect-ratio:4/3;overflow:hidden;background:#0a0f1c;clip-path:polygon(0 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%)}
+.gbig .gimg video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.gimg .badge{position:absolute;left:10px;top:10px;padding:5px 10px;background:var(--orange);color:#000;font:800 .72rem var(--head);letter-spacing:.14em;pointer-events:none}
+.gbig .gimg img,.fb{width:100%;height:100%;object-fit:cover;display:block;animation:fi .45s ease}
+.fb{background:radial-gradient(circle at 50% 55%,#173058,#05070e 75%)}
+@keyframes fi{from{opacity:0;transform:scale(1.03)}}
+.gbig h3{font:900 clamp(1.7rem,2.6vw,2.2rem)/1 var(--head);font-style:italic;text-transform:uppercase;margin:8px 0 6px}
+.gbig p{color:var(--mut);margin-bottom:18px}
+.gtxt{display:flex;flex-direction:column;align-items:flex-start}
+.gnav{display:flex;align-items:center;gap:10px;margin-top:22px}
+.gnav button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel2);font:800 1.1rem var(--head);transition:.2s}
+.gnav button:hover{border-color:var(--orange);color:var(--orange)}
+.gnav span{font:700 .9rem var(--head);letter-spacing:.14em;color:var(--mut);margin-right:auto}
+.gstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}
+.th{position:relative;aspect-ratio:1;overflow:hidden;border:2px solid transparent;opacity:.55;transition:.2s;background:#0a0f1c}
+.th img,.th .fb{width:100%;height:100%;object-fit:cover;animation:none}
+.th i{position:absolute;left:4px;bottom:2px;font:800 .72rem var(--head);font-style:normal;text-shadow:0 1px 4px #000}
+.th:hover{opacity:.9}
+.th.on{opacity:1;border-color:var(--orange)}
+
+/* profil */
+.prof{display:flex;gap:18px;align-items:center;margin:10px 0 18px}
+.prof img{width:84px;height:84px;object-fit:cover;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);border-bottom:3px solid var(--orange)}
+.prof h2{margin:0}
+.prof small{display:block;font:700 .85rem var(--head);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+.skills{list-style:none;margin:22px 0 4px;display:grid;gap:12px}
+.skills li{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px;font:700 .9rem var(--head);letter-spacing:.12em;text-transform:uppercase}
+.skills i{display:block;height:8px;background:rgba(255,255,255,.08);transform:skewX(-20deg);position:relative}
+.skills i::after{content:"";position:absolute;inset:0;width:var(--v);background:linear-gradient(90deg,var(--blue),var(--orange))}
+.stats{display:flex;gap:28px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.stats b{display:block;font:900 2.2rem/1 var(--head);font-style:italic}
+.stats span{font-size:.88rem;color:var(--mut)}
+
+/* services : liste façon boutique */
+.shop{list-style:none;margin-top:14px}
+.shop li{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;padding:16px 0;border-top:1px solid var(--line)}
+.shop .n{font:900 1.3rem var(--head);font-style:italic;color:var(--orange)}
+.shop h3{font:800 1.3rem/1.1 var(--head);font-style:italic;text-transform:uppercase}
+.shop p{font-size:.92rem;color:var(--mut);line-height:1.45;margin-top:2px}
+.shop b{font:800 .95rem var(--head);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;padding:6px 12px;background:var(--panel2);border:1px solid var(--line)}
+
+/* contact */
+.mail{display:block;font:900 clamp(1.4rem,2.6vw,2rem)/1.1 var(--head);font-style:italic;margin:18px 0 22px;word-break:break-all;color:#fff}
+.mail:hover{color:var(--orange)}
+.soc{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.soc a{padding:8px 14px;border:1px solid var(--line);font:700 .85rem var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--soft);transition:.2s}
+.soc a:hover{border-color:var(--orange);color:#fff}
+.foot{margin-top:22px;font-size:.8rem;color:var(--mut)}
+
+.rv{opacity:0;transform:translateX(-30px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+@media(max-width:900px){
+  .tabs,.route{display:none}
+  section{padding:90px 16px 150px;align-items:flex-end}
+  #hero{align-items:flex-end}
+  #hero::before{background:linear-gradient(0deg,rgba(5,7,14,.92) 25%,rgba(5,7,14,.2) 70%)}
+  .panel,.garage{max-width:none}
+  .gbig{grid-template-columns:1fr}
+  .gstrip{grid-template-columns:repeat(7,1fr);gap:5px}
+  .hud{bottom:12px}.gauge{width:70px;height:70px}.gauge span{font-size:1.4rem}.spd b{font-size:1.9rem}
+  .keys{display:none}
+}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<header class="top">
+  <a href="#hero" class="brand">OTAA<span>RL</span></a>
+  <nav aria-label="Navigation principale"><ul class="tabs" id="tabs">
+    <li><a href="#hero" data-s="hero"><span>Jouer</span></a></li>
+    <li><a href="#works" data-s="works"><span>Créations</span></a></li>
+    <li><a href="#about" data-s="about"><span>Profil</span></a></li>
+    <li><a href="#services" data-s="services"><span>Services</span></a></li>
+    <li><a href="#contact" data-s="contact"><span>Contact</span></a></li>
+  </ul></nav>
+  <a href="#contact" class="btn o" style="padding:10px 18px"><span>Me contacter</span></a>
+</header>
+
+<aside class="route" aria-label="Progression">
+  <div class="line"><i id="rfill"></i></div>
+  <ol id="route">
+    <li><a href="#hero" data-s="hero"><i></i><span>Départ</span></a></li>
+    <li><a href="#works" data-s="works"><i></i><span>Créations</span></a></li>
+    <li><a href="#about" data-s="about"><i></i><span>Profil</span></a></li>
+    <li><a href="#services" data-s="services"><i></i><span>Services</span></a></li>
+    <li><a href="#contact" data-s="contact"><i></i><span>Arrivée</span></a></li>
+  </ol>
+</aside>
+
+<div class="hud" aria-hidden="true">
+  <div class="ss" id="ss">SUPERSONIC</div>
+  <div class="spd"><b id="kmh">48</b><small>KM/H</small></div>
+  <div class="gauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="bg"/><circle cx="60" cy="60" r="50" class="fg" id="garc"/></svg><span id="gnum">100</span><em>BOOST</em></div>
+</div>
+
+<main>
+<section id="hero">
+  <div class="hero">
+    <span class="label">Thomas Rubulotta · Artiste 3D</span>
+    <h1>OTAA<span>RL</span></h1>
+    <div class="stripe"><i></i><i></i></div>
+    <p><b>Je mets en scène Rocket League.</b> Scènes 3D, affiches et vidéos pour les équipes et événements esport, et des sites web qui vont avec.</p>
+    <div class="btns">
+      <a class="btn o" href="#works"><span>Voir mes créations</span></a>
+      <a class="btn" href="#contact"><span>Me contacter</span></a>
+    </div>
+    <div class="keys">Maintiens <kbd>B</kbd> ou le clic pour booster · scrolle pour avancer</div>
+  </div>
+</section>
+
+<section id="works">
+  <div class="panel garage rv">
+    <span class="label">Étape 01 · Créations</span>
+    <div class="gbig" id="gbig"></div>
+    <div class="gnav"><span id="gcount">01 / 07</span><button id="gprev" aria-label="Création précédente">‹</button><button id="gnext" aria-label="Création suivante">›</button></div>
+    <div class="gstrip" id="gstrip"></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="panel rv">
+    <span class="label">Étape 02 · Profil</span>
+    <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2>Ota.</h2><small>Thomas Rubulotta</small></div></div>
+    <p>Créateur 3D, designer et développeur web. Je réalise des scènes, affiches et vidéos pour des équipes et événements esport.</p>
+    <p><!-- ✏️ Complète avec ton parcours --></p>
+    <ul class="skills">
+      <li>3D<i style="--v:92%"></i></li>
+      <li>Motion<i style="--v:80%"></i></li>
+      <li>Web<i style="--v:74%"></i></li>
+      <li>Coaching<i style="--v:68%"></i></li>
+    </ul>
+    <div class="stats"><div><b>7+</b><span>Projets</span></div><div><b>6</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
+  </div>
+</section>
+
+<section id="services">
+  <div class="panel rv">
+    <span class="label">Étape 03 · Services</span>
+    <h2>Ce que je fais</h2>
+    <ul class="shop" id="svcs"></ul>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="panel rv">
+    <span class="label">Arrivée · Contact</span>
+    <h2>On roule ensemble ?</h2>
+    <p>Un roster à annoncer, une affiche, une vidéo ou un site : raconte-moi ton projet.</p>
+    <a class="mail" id="mail" href="mailto:Otaapro@gmail.com">Otaapro@gmail.com</a>
+    <a class="btn o" id="mail2" href="mailto:Otaapro@gmail.com"><span>Écrire un e-mail</span></a>
+    <div class="soc" id="soc"></div>
+    <p class="foot">© <span id="y"></span> OtaaRL — Thomas Rubulotta · Ferrari 458 : modèle three.js (CC-BY 4.0)</p>
+  </div>
+</section>
+</main>
+
+<script>
+// onglets + trajet : suivent la section affichée
+(function(){
+  const ids=['hero','works','about','services','contact'],fill=document.getElementById('rfill');
+  const links=[...document.querySelectorAll('[data-s]')];
+  function f(){
+    const m=document.documentElement.scrollHeight-innerHeight;fill.style.height=(m>0?scrollY/m*100:0)+'%';
+    let cur='hero';ids.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<innerHeight*.5)cur=id});
+    links.forEach(a=>a.classList.toggle('on',a.dataset.s===cur));
+  }
+  addEventListener('scroll',f,{passive:true});addEventListener('load',f);f();
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+/* ============ ✏️ TON CONTENU : modifie ici ============ */
+const SITE = {
+  email: "Otaapro@gmail.com",
+  works: [
+    {t:"3 Titans to defeat them all", c:"Karmine Corp", k:"Affiche 3D · 2024", img:"assets/kc-titan.jpg", u:"https://x.com/OtaaRL/status/1752808730335273433"},
+    {t:"Scène 3D", c:"Karmine Corp", k:"Scène 3D · 2022", img:"assets/kc-scene.jpg", u:"https://x.com/OtaaRL/status/1593662761539543040", wide:true},
+    {t:"Women's Showmatch", c:"GroundZero", k:"Affiche 3D · 2025", img:"assets/wrl.jpg", u:"https://x.com/GrZero0/status/1879234527689670820"},
+    {t:"Lakiche Cup — Saison 6", c:"Lakitue", k:"Annonce vidéo · 2025", img:"assets/lakiche-poster.jpg", vid:"assets/videos/lakiche.mp4", u:"https://x.com/LakitueRL/status/1902419806076227617", wide:true},
+    {t:"Roster 2024", c:"Pingou Esport", k:"Vidéo 3D · 2024", img:"assets/pingou-poster.jpg", vid:"assets/videos/pingou.mp4", u:"https://x.com/OtaaRL/status/1770508974325911785"},
+    {t:"Thonon Game Fest", c:"DayLight ESC", k:"Vidéo · 2024", img:"assets/daylight-poster.jpg", vid:"assets/videos/daylight.mp4", u:"https://x.com/DLTEsport/status/1782802973388632517"},
+    {t:"Nouvelle équipe — Urban Series", c:"Voltage", k:"Vidéo · 2025", img:"assets/voltage-poster.jpg", vid:"assets/videos/voltage.mp4", u:"https://x.com/Esport_Voltage/status/1931022301710983640", wide:true}
+  ],
+  services: [
+    {t:"Création 3D", d:"Scènes, affiches et visuels cinématiques.", p:"Sur devis", c:"#ff2a8a"},
+    {t:"Motion & vidéo", d:"Annonces de roster, trailers, intros.", p:"Sur devis", c:"#9a5cff"},
+    {t:"Web", d:"Sites vitrines sur mesure, rapides et soignés.", p:"Sur devis", c:"#2de2ff"},
+    {t:"Coaching", d:"Sessions personnalisées et plan de progression.", p:"10 €/h", c:"#ffb060"}
+  ],
+  socials: [{n:"X · @OtaaRL",u:"https://x.com/OtaaRL"},{n:"Twitch",u:"https://www.twitch.tv/otaa"},{n:"YouTube",u:"https://www.youtube.com/@OtaaRL"},{n:"Discord",u:"https://discord.gg/qCyFke9Mwc"}]
+};
+/* ======================================================= */
+const $=s=>document.querySelector(s);
+const tp=['OTAARL','NIGHT DRIVE','3D ARTIST','NEON','ROCKET LEAGUE','RLCS','MOTION'].map(w=>`<span>${w}</span><span>✦</span>`).join('');
+
+// garage des créations : une grande vignette + une bande de miniatures
+(function(){
+  const W=SITE.works,big=$('#gbig'),strip=$('#gstrip');let cur=0;
+  const pic=(w,alt)=>w.img?`<img src="${w.img}" alt="${alt}">`:'<span class="fb"></span>';
+  strip.innerHTML=W.map((w,i)=>`<button class="th" data-i="${i}" aria-label="${w.t}">${pic(w,'')}<i>${String(i+1).padStart(2,'0')}</i></button>`).join('');
+  function show(i){cur=(i+W.length)%W.length;const w=W[cur];
+    big.innerHTML=`<div class="gimg">${w.vid?`<video controls playsinline preload="metadata" poster="${w.img}" src="${w.vid}"></video>`:pic(w,w.t)}${w.vid?'<span class="badge">VIDÉO</span>':''}</div><div class="gtxt"><span class="label b">${w.c}</span><h3>${w.t}</h3><p>${w.k}</p><a class="btn o" href="${w.u}" target="_blank" rel="noopener"><span>${w.vid?'Voir sur X ↗':'Voir le projet ↗'}</span></a></div>`;
+    strip.querySelectorAll('.th').forEach((b,j)=>b.classList.toggle('on',j===cur));
+    $('#gcount').textContent=String(cur+1).padStart(2,'0')+' / '+String(W.length).padStart(2,'0')}
+  strip.addEventListener('click',e=>{const b=e.target.closest('.th');if(b)show(+b.dataset.i)});
+  $('#gprev').onclick=()=>show(cur-1);$('#gnext').onclick=()=>show(cur+1);
+  addEventListener('keydown',e=>{const rc=$('#works').getBoundingClientRect();if(rc.top<innerHeight*.5&&rc.bottom>innerHeight*.5){if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1)}});
+  show(0);
+})();
+$('#svcs').innerHTML=SITE.services.map((x,i)=>`<li><span class="n">0${i+1}</span><div><h3>${x.t}</h3><p>${x.d}</p></div><b>${x.p}</b></li>`).join('');
+$('#soc').innerHTML=SITE.socials.map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${s.n}</a>`).join('');
+$('#mail').href='mailto:'+SITE.email;$('#mail2').href='mailto:'+SITE.email;$('#mail').textContent=SITE.email;$('#y').textContent=new Date().getFullYear();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});
+document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*80+'ms';io.observe(e)});
+
+/* ================= SCÈNE 3D : pont suspendu de nuit ================= */
+(function(){
+  if(!window.THREE)return;
+  const T=THREE,cv=$('#gl');
+  const R=new T.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+  const DPR=Math.min(devicePixelRatio,1.5);R.setPixelRatio(DPR);
+  const S=new T.Scene();S.fog=new T.Fog(0x0a0d1c,40,330);
+  const cam=new T.PerspectiveCamera(45,1,.1,1200);
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+
+  // ---------- utilitaires ----------
+  function radial(stops){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);stops.forEach(([o,col])=>gr.addColorStop(o,col));g.fillStyle=gr;g.fillRect(0,0,128,128);return new T.CanvasTexture(c)}
+  const haloTex=radial([[0,'rgba(255,255,255,1)'],[.22,'rgba(255,255,255,.45)'],[1,'rgba(255,255,255,0)']]);
+  const sprite=(col,sx,sy,op=1)=>{const s=new T.Sprite(new T.SpriteMaterial({map:haloTex,color:col,blending:T.AdditiveBlending,depthWrite:false,transparent:true,opacity:op}));s.scale.set(sx,sy,1);return s};
+  // matériau "flamme" : dégradé le long de la longueur (base brillante -> pointe qui s'efface)
+  function flameMat(c1,c2,len,wob){return new T.ShaderMaterial({
+    uniforms:{t:{value:0},k:{value:0},c1:{value:new T.Color(c1)},c2:{value:new T.Color(c2)}},
+    vertexShader:`uniform float t;varying float h;void main(){h=position.y/${len.toFixed(3)};vec3 p=position;p.xz*=1.+${wob.toFixed(2)}*sin(t*55.+position.y*9.)*h;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+    fragmentShader:`uniform float k;uniform vec3 c1,c2;varying float h;void main(){vec3 c=mix(c1,c2,smoothstep(0.,.75,h));float a=pow(1.-h,1.35)*k;gl_FragColor=vec4(c*a,1.);}`,
+    blending:T.AdditiveBlending,transparent:true,depthWrite:false,side:T.DoubleSide})}
+
+  // ---------- ciel ----------
+  S.add(new T.Mesh(new T.SphereGeometry(900,32,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
+    uniforms:{a:{value:new T.Color(0x02040b)},b:{value:new T.Color(0x0a1430)},c:{value:new T.Color(0x2a1a3a)},d:{value:new T.Color(0xff7a2a)}},
+    vertexShader:'varying vec3 p;void main(){p=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'varying vec3 p;uniform vec3 a,b,c,d;void main(){float h=max(p.y,0.);vec3 col=mix(d,c,smoothstep(0.,.05,h));col=mix(col,b,smoothstep(.04,.3,h));col=mix(col,a,smoothstep(.25,.9,h));gl_FragColor=vec4(col,1.);}'})));
+  const sg=[];for(let i=0;i<600;i++){const u=Math.random()*Math.PI*2,v=Math.random()*.85+.1,r=Math.sqrt(1-v*v);sg.push(Math.cos(u)*r*850,v*850,Math.sin(u)*r*850)}
+  const stg=new T.BufferGeometry();stg.setAttribute('position',new T.Float32BufferAttribute(sg,3));
+  S.add(new T.Points(stg,new T.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:false,fog:false,transparent:true,opacity:.75})));
+  const moon=new T.Mesh(new T.CircleGeometry(10,48),new T.MeshBasicMaterial({color:0xe6eeff,fog:false}));moon.position.set(-160,170,-620);moon.lookAt(0,0,0);S.add(moon);
+  const mh=sprite(0x9fb8ff,110,110,.3);mh.material.fog=false;mh.position.copy(moon.position);S.add(mh);
+
+  // ---------- eau + skyline (reflet miroir) ----------
+  const WY=-16;
+  const win=document.createElement('canvas');win.width=128;win.height=256;const wx=win.getContext('2d');
+  wx.fillStyle='#070b16';wx.fillRect(0,0,128,256);
+  for(let yy=6;yy<256;yy+=10)for(let xx=6;xx<128;xx+=10)if(Math.random()<.32){wx.fillStyle=['#ffd68a','#ffb347','#8fc4ff','#ffffff'][Math.floor(Math.random()*4)];wx.globalAlpha=.25+Math.random()*.5;wx.fillRect(xx,yy,4,6)}
+  const wt=new T.CanvasTexture(win);wt.wrapS=wt.wrapT=T.RepeatWrapping;
+  const city=new T.Group(),cityM=new T.Group();
+  const bMat=new T.MeshBasicMaterial({map:wt,fog:false,color:0x7d86a0});
+  const mMat=new T.MeshBasicMaterial({map:wt,fog:false,color:0x5a6380,transparent:true,opacity:.5});
+  function building(x,z,w,h,d){
+    const g=new T.BoxGeometry(w,h,d),uv=g.attributes.uv;
+    for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*w/10,uv.getY(i)*h/16);
+    const a=new T.Mesh(g,bMat);a.position.set(x,WY+h/2,z);city.add(a);
+    const b=new T.Mesh(g,mMat);b.position.set(x,WY+h/2,z);cityM.add(b);
+  }
+  for(let i=0;i<120;i++)building(rnd(-420,420),rnd(-560,-420),rnd(14,44),rnd(30,Math.random()<.2?220:110),rnd(14,38));
+  for(let i=0;i<70;i++){const s=Math.random()<.5?-1:1;building(s*rnd(130,460),rnd(-400,-60),rnd(14,44),rnd(22,Math.random()<.2?170:80),rnd(14,38))}
+  cityM.scale.y=-1;cityM.position.y=2*WY;S.add(city,cityM);
+  const water=new T.Mesh(new T.PlaneGeometry(2200,2200),new T.MeshBasicMaterial({color:0x040a18,transparent:true,opacity:.84,depthWrite:false}));
+  water.rotation.x=-Math.PI/2;water.position.y=WY;S.add(water);
+
+  // ---------- route mouillée : miroir + asphalte avec flaques ----------
+  const ROADW=12.6,LEN=900,REP=LEN/12;
+  const rc=document.createElement('canvas');rc.width=256;rc.height=512;const x=rc.getContext('2d');
+  x.fillStyle='#0d0f18';x.fillRect(0,0,256,512);
+  for(let i=0;i<4500;i++){x.fillStyle='rgba(255,255,255,'+(Math.random()*.05)+')';x.fillRect(Math.random()*256,Math.random()*512,2,2)}
+  x.fillStyle='#d9dfe8';x.fillRect(8,0,5,512);x.fillRect(243,0,5,512);
+  x.fillStyle='#eaeff6';[85,171].forEach(px=>{x.fillRect(px-2,20,4,150);x.fillRect(px-2,276,4,150)});
+  const rt=new T.CanvasTexture(rc);rt.wrapS=rt.wrapT=T.RepeatWrapping;rt.repeat.set(1,REP);rt.anisotropy=8;
+  const ac=document.createElement('canvas');ac.width=256;ac.height=512;const al=ac.getContext('2d');
+  al.fillStyle='rgb(222,222,222)';al.fillRect(0,0,256,512);
+  for(let i=0;i<9;i++){const px=rnd(20,236),py=rnd(20,492),r=rnd(18,60);const g=al.createRadialGradient(px,py,0,px,py,r);g.addColorStop(0,'rgba(60,60,60,1)');g.addColorStop(1,'rgba(60,60,60,0)');al.fillStyle=g;al.beginPath();al.ellipse(px,py,r,r*1.8,0,0,7);al.fill()}
+  al.fillStyle='#fff';al.fillRect(8,0,5,512);al.fillRect(243,0,5,512);[85,171].forEach(px=>{al.fillRect(px-2,20,4,150);al.fillRect(px-2,276,4,150)});
+  const at=new T.CanvasTexture(ac);at.wrapS=at.wrapT=T.RepeatWrapping;at.repeat.set(1,REP);
+  const hasMirror=!!T.Reflector;
+  if(hasMirror){
+    const mir=new T.Reflector(new T.PlaneGeometry(ROADW,LEN),{textureWidth:Math.round(innerWidth*DPR*.5),textureHeight:Math.round(innerHeight*DPR*.5),color:0x8a92aa,clipBias:.003});
+    mir.rotation.x=-Math.PI/2;mir.position.y=-.01;S.add(mir);
+  }
+  const road=new T.Mesh(new T.PlaneGeometry(ROADW,LEN),new T.MeshStandardMaterial({map:rt,alphaMap:hasMirror?at:null,transparent:hasMirror,roughness:.5,metalness:.15}));
+  road.rotation.x=-Math.PI/2;S.add(road);
+  const deck=new T.Mesh(new T.BoxGeometry(20,1.6,LEN),new T.MeshStandardMaterial({color:0x080a12,roughness:.85}));deck.position.y=-.82;S.add(deck);
+  [[-7.2,0x2f7bff],[7.2,0xff8a1f]].forEach(([px,col])=>{
+    const p=new T.Mesh(new T.BoxGeometry(.5,1.2,LEN),new T.MeshStandardMaterial({color:0x10131f,roughness:.7}));p.position.set(px,.6,0);S.add(p);
+    const n=new T.Mesh(new T.BoxGeometry(.08,.08,LEN),new T.MeshBasicMaterial({color:col}));n.position.set(px+(px<0?.3:-.3),1.0,0);S.add(n);
+    const u=new T.Mesh(new T.BoxGeometry(.1,.1,LEN),new T.MeshBasicMaterial({color:col}));u.position.set(px*1.37,-1.6,0);S.add(u);
+  });
+
+  // ---------- pont suspendu : pylônes + câbles néon + suspentes (défilent) ----------
+  const SEG=150,NS=3,segs=new T.Group();S.add(segs);
+  const concrete=new T.MeshStandardMaterial({color:0x1a1d2b,roughness:.8,metalness:.2});
+  const cableMat=new T.MeshBasicMaterial({color:0xbfe0ff});
+  const hangMat=new T.LineBasicMaterial({color:0x2f4f7f,transparent:true,opacity:.75});
+  const yC=u=>7+53*Math.pow(2*u-1,2);
+  const blinkers=[];
+  for(let s=0;s<NS;s++){
+    const g=new T.Group();g.position.z=40-s*SEG;
+    [-1,1].forEach(side=>{
+      const h=64-WY,p=new T.Mesh(new T.BoxGeometry(1.8,h,2.6),concrete);p.position.set(side*8.6,(64+WY)/2,0);g.add(p);
+      const led=new T.Mesh(new T.BoxGeometry(.12,60,.12),new T.MeshBasicMaterial({color:side<0?0x2f7bff:0xff8a1f}));led.position.set(side*7.65,33,1.35);g.add(led);
+      const red=sprite(0xff2020,3.4,3.4);red.position.set(side*8.6,65,0);g.add(red);blinkers.push(red);
+      const pts=[];for(let i=0;i<=40;i++){const u=i/40;pts.push(new T.Vector3(side*8.1,yC(u),-u*SEG))}
+      g.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),90,.13,6,false),cableMat));
+      const hv=[];for(let z=7.5;z<SEG;z+=7.5){hv.push(side*8.1,1.2,-z,side*8.1,yC(z/SEG),-z)}
+      const hg=new T.BufferGeometry();hg.setAttribute('position',new T.Float32BufferAttribute(hv,3));g.add(new T.LineSegments(hg,hangMat));
+    });
+    [20,56].forEach(y=>{const b=new T.Mesh(new T.BoxGeometry(19,1.6,1.8),concrete);b.position.set(0,y,0);g.add(b)});
+    const bl=new T.Mesh(new T.BoxGeometry(15,.1,.1),new T.MeshBasicMaterial({color:0xdfeaff}));bl.position.set(0,19.15,.95);g.add(bl);
+    segs.add(g);
+  }
+
+  // ---------- lampadaires (lumière sodium) ----------
+  const steel=new T.MeshStandardMaterial({color:0x151a2a,metalness:.6,roughness:.45});
+  const lamps=new T.Group();S.add(lamps);
+  const SL=20,NL=24,spanL=SL*NL;
+  for(let i=0;i<NL;i++)[-1,1].forEach(side=>{
+    const g=new T.Group();g.position.set(side*6.5,0,40-i*SL+(side>0?SL/2:0));
+    const pole=new T.Mesh(new T.CylinderGeometry(.06,.08,6,8),steel);pole.position.y=3;g.add(pole);
+    const arm=new T.Mesh(new T.BoxGeometry(1.6,.07,.07),steel);arm.position.set(-side*.75,6,0);g.add(arm);
+    const bulb=new T.Mesh(new T.BoxGeometry(.55,.1,.28),new T.MeshBasicMaterial({color:0xffe2b0}));bulb.position.set(-side*1.5,5.94,0);g.add(bulb);
+    const halo=sprite(0xffb060,2.8,2.8);halo.position.copy(bulb.position);g.add(halo);
+    const pool=new T.Mesh(new T.PlaneGeometry(8,10),new T.MeshBasicMaterial({map:haloTex,color:0xff9a40,blending:T.AdditiveBlending,depthWrite:false,transparent:true,opacity:.22}));
+    pool.rotation.x=-Math.PI/2;pool.position.set(-side*3,.02,0);g.add(pool);
+    lamps.add(g);
+  });
+
+  // ---------- trafic ----------
+  const traffic=[];const tMat=new T.MeshStandardMaterial({color:0x0c0f18,metalness:.7,roughness:.35});
+  for(let i=0;i<7;i++){
+    const on=i<4,g=new T.Group();
+    const b=new T.Mesh(new T.BoxGeometry(2,1.05,4.4),tMat);b.position.y=.75;g.add(b);
+    const c=new T.Mesh(new T.BoxGeometry(1.7,.6,2.2),tMat);c.position.set(0,1.55,on?-.2:.2);g.add(c);
+    [-.72,.72].forEach(px=>{const l=sprite(on?0xeaf4ff:0xff1a2a,on?1.2:1.1,on?1.2:.7);l.position.set(px,.8,2.25);g.add(l)});
+    g.userData.tr=[];[-.72,.72].forEach(px=>{const tg=new T.CylinderGeometry(.05,.05,1,6,1,true);tg.translate(0,.5,0);const tm=new T.Mesh(tg,flameMat(on?0xffffff:0xff2a4a,on?0x9fd8ff:0xff2a8a,1,0));tm.material.uniforms.k.value=.85;tm.position.set(px,.8,2.25);tm.frustumCulled=false;g.add(tm);g.userData.tr.push(tm)});
+    g.position.set(on?-4.2:4.2,0,rnd(-460,-40));g.userData.on=on;g.userData.v=rnd(26,36);g.userData.box=[b,c];g.userData.wh=[];S.add(g);traffic.push(g);
+  }
+
+  // modèle de trafic : Ferrari 458 (exemple officiel three.js, CC-BY 4.0)
+  if(T.GLTFLoader&&T.DRACOLoader){
+    const dl=new T.DRACOLoader();dl.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+    const gl=new T.GLTFLoader();gl.setDRACOLoader(dl);
+    gl.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/ferrari.glb',gltf=>{
+      const src=gltf.scene,paints=[0xd8dce4,0x0b0c10,0xa8101e,0x1b3d94,0xeeeeee,0x2b2f38,0xff8a00];
+      traffic.forEach((g,i)=>{
+        const m=src.clone(true);
+        const paint=new T.MeshStandardMaterial({color:paints[i%paints.length],metalness:.65,roughness:.18,envMap:cubeRT.texture,envMapIntensity:1.3});
+        m.traverse(o=>{if(o.isMesh&&o.material&&o.material.name==='Body_Color')o.material=paint;if(/^wheel_(fl|fr|rl|rr)$/.test(o.name))g.userData.wh.push(o)});
+        m.rotation.y=g.userData.on?Math.PI:0;m.scale.setScalar(1.05);g.add(m);
+        g.userData.box.forEach(x=>x.visible=false);
+      });
+    },undefined,()=>{});
+  }
+
+  // ---------- pluie ----------
+  const RN=1300,rp=new Float32Array(RN*6);
+  const rset=(i,init)=>{const x=rnd(-32,32),y=init?rnd(0,24):24,z=rnd(-80,26);rp.set([x,y,z,x,y+.9,z],i*6)};
+  for(let i=0;i<RN;i++)rset(i,true);
+  const rg=new T.BufferGeometry();rg.setAttribute('position',new T.BufferAttribute(rp,3));
+  S.add(new T.LineSegments(rg,new T.LineBasicMaterial({color:0xb8c8ff,transparent:true,opacity:.26})));
+
+  // ---------- traits de vitesse ----------
+  const streaks=[],stMat=new T.MeshBasicMaterial({color:0xd8e8ff,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false});
+  for(let i=0;i<80;i++){const m=new T.Mesh(new T.BoxGeometry(.025,.025,3),stMat),a=Math.random()*Math.PI*2,rr=2.5+Math.random()*6;
+    m.position.set(Math.cos(a)*rr,.3+Math.abs(Math.sin(a))*rr*.55,rnd(-180,40));S.add(m);streaks.push(m)}
+
+  // ---------- lumières ----------
+  S.add(new T.HemisphereLight(0x5a6aa8,0x1a1030,.9));
+  const moonL=new T.DirectionalLight(0x7f98ff,.9);moonL.position.set(-8,12,-6);S.add(moonL);
+  const rimC=new T.DirectionalLight(0x19e3ff,1.1);rimC.position.set(-9,3,6);S.add(rimC);
+  const rimP=new T.DirectionalLight(0xff8a1f,1.0);rimP.position.set(9,3,6);S.add(rimP);
+
+  // ---------- voiture ----------
+  const car=new T.Group();S.add(car);                 // groupe "monde" (avance / se cabre au boost)
+  const body=new T.Group();body.scale.setScalar(1.5);body.rotation.y=Math.PI;car.add(body); // repère du modèle (avant = -z monde)
+  const under=new T.PointLight(0x2f7bff,1.8,6);under.position.set(0,.15,0);car.add(under);
+  const ug=new T.Mesh(new T.PlaneGeometry(4.2,6.4),new T.MeshBasicMaterial({map:haloTex,color:0x2f7bff,blending:T.AdditiveBlending,depthWrite:false,transparent:true,opacity:.35}));
+  ug.rotation.x=-Math.PI/2;ug.position.y=.03;car.add(ug);
+  [-.85,.85].forEach(px=>{
+    const s=new T.SpotLight(0xdff6ff,6,70,.38,.55,1.2);s.position.set(px,.95,-2.4);s.target.position.set(px*1.6,0,-38);car.add(s,s.target);
+    const cg=new T.ConeGeometry(3.2,26,20,1,true);cg.translate(0,-13,0);
+    const cone=new T.Mesh(cg,new T.MeshBasicMaterial({color:0xbfeaff,transparent:true,opacity:.05,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide}));
+    cone.rotation.x=-Math.PI/2;cone.position.set(px,.95,-2.5);car.add(cone);
+    const hs=sprite(0xcfeeff,2.6,2.6);hs.position.set(px,.95,-2.6);car.add(hs);
+    const tl=sprite(0xff2030,1.8,1.1);tl.position.set(px*.94,.95,2.55);car.add(tl);
+  });
+  const proc=new T.Mesh(new T.BoxGeometry(1.9,.9,3.4),new T.MeshStandardMaterial({color:0x2a6bff,metalness:.5,roughness:.3}));proc.position.y=.7;body.add(proc);
+
+  // ---------- BOOST ----------
+  const EXH=[[-.42,.42],[.42,.42]];                    // sorties (repère modèle)
+  const flames=[];
+  EXH.forEach(([ex,ey])=>{
+    [[.26,2.4,0xfff2c0,0xff4a10,.18],[.13,1.25,0xffffff,0xffc040,.1]].forEach(([rad,len,c1,c2,wob])=>{
+      const g=new T.ConeGeometry(rad,len,18,1,true);g.rotateX(Math.PI);g.translate(0,len/2,0); // base en y=0, pointe en y=len
+      const m=new T.Mesh(g,flameMat(c1,c2,len,wob));m.rotation.x=-Math.PI/2;m.position.set(ex,ey,-1.66);m.frustumCulled=false;body.add(m);flames.push(m);
+    });
+  });
+  // traînées supersonic (4 filets blancs)
+  const trails=[];
+  [[-1,.5,-1.45],[1,.5,-1.45],[-.82,1.22,-1.05],[.82,1.22,-1.05]].forEach(([tx,ty,tz])=>{
+    const g=new T.CylinderGeometry(.03,.03,9,6,1,true);g.translate(0,4.5,0);
+    const m=new T.Mesh(g,flameMat(0xffffff,0x9fefff,9,0));m.rotation.x=-Math.PI/2;m.position.set(tx,ty,tz);m.frustumCulled=false;body.add(m);trails.push(m);
+  });
+  const boostLight=new T.PointLight(0xff7a2a,0,16);S.add(boostLight);
+  // onde de choc au déclenchement
+  const ring=new T.Mesh(new T.RingGeometry(.55,.75,48),new T.MeshBasicMaterial({color:0xffb050,transparent:true,opacity:0,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide}));
+  S.add(ring);let ringT=1;
+  // particules de flamme (espace monde)
+  const PN=900,pPos=new Float32Array(PN*3),pLife=new Float32Array(PN),pSize=new Float32Array(PN),pVel=new Float32Array(PN*3),pDur=new Float32Array(PN);
+  for(let i=0;i<PN;i++)pPos[i*3+1]=-999;
+  const pg=new T.BufferGeometry();
+  pg.setAttribute('position',new T.BufferAttribute(pPos,3));pg.setAttribute('life',new T.BufferAttribute(pLife,1));pg.setAttribute('size',new T.BufferAttribute(pSize,1));
+  const pMat=new T.ShaderMaterial({uniforms:{sc:{value:600}},
+    vertexShader:'attribute float life,size;uniform float sc;varying float vL;void main(){vec4 mv=modelViewMatrix*vec4(position,1.);float z=-mv.z;vL=life*smoothstep(2.5,6.,z);gl_PointSize=min(size*(.35+life*.9)*sc/max(z,.1),90.);gl_Position=projectionMatrix*mv;}',
+    fragmentShader:'varying float vL;void main(){if(vL<=0.)discard;float d=length(gl_PointCoord-.5);if(d>.5)discard;float a=smoothstep(.5,0.,d)*vL;vec3 c=mix(vec3(1.,.2,.03),vec3(1.,.78,.3),smoothstep(.25,.85,vL));c=mix(c,vec3(1.),smoothstep(.85,1.,vL));gl_FragColor=vec4(c*a*.85,1.);}',
+    blending:T.AdditiveBlending,transparent:true,depthWrite:false});
+  const parts=new T.Points(pg,pMat);parts.frustumCulled=false;S.add(parts);
+  let pIdx=0,pAcc=0;const em=EXH.map(()=>new T.Vector3()),tmp=new T.Vector3();
+  function emit(n,speed){
+    for(let k=0;k<n;k++){
+      const e=em[k%em.length],i=pIdx;pIdx=(pIdx+1)%PN;const spark=Math.random()<.12;
+      pPos[i*3]=e.x+rnd(-.08,.08);pPos[i*3+1]=e.y+rnd(-.08,.08);pPos[i*3+2]=e.z+rnd(0,.3);
+      pVel[i*3]=rnd(-1.4,1.4)*(spark?3:1);pVel[i*3+1]=rnd(-.3,1.5)*(spark?3:1);pVel[i*3+2]=10+speed*.35+rnd(0,6);
+      pDur[i]=spark?rnd(.6,1.1):rnd(.22,.5);pLife[i]=1;pSize[i]=spark?rnd(.05,.1):rnd(.18,.42);
+    }
+  }
+
+  // ---------- modèle Fennec + roues animées ----------
+  const wheels=[];
+  if(T.GLTFLoader)new T.GLTFLoader().load('assets/car.glb',gltf=>{
+    const m=gltf.scene,box=new T.Box3().setFromObject(m),size=box.getSize(new T.Vector3());
+    m.scale.setScalar(3.4/Math.max(size.x,size.z));
+    box.setFromObject(m);const c=box.getCenter(new T.Vector3());
+    m.position.set(-c.x,-box.min.y,-c.z);
+    m.rotation.y=(size.x>size.z?Math.PI/2:0)+Math.PI;
+    const holder=new T.Group();holder.add(m);body.add(holder);proc.visible=false;
+    m.traverse(o=>{if(o.isMesh)(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>{if(!mt.isMeshStandardMaterial)return;mt.envMap=cubeRT.texture;const pt=/Paint|Body/i.test(mt.name);mt.envMapIntensity=pt?1.5:.6;if(/Paint/i.test(mt.name)){mt.roughness=.16;mt.metalness=.7}if(/Window/i.test(mt.name)){mt.roughness=.05;mt.metalness=.9;mt.envMapIntensity=1.2}mt.needsUpdate=true})});
+    m.traverse(o=>{if(o.isMesh){(Array.isArray(o.material)?o.material:[o.material]).forEach(mt=>{['map','emissiveMap'].forEach(k=>{if(mt[k]){mt[k].encoding=T.LinearEncoding;mt[k].needsUpdate=true}});if(mt.emissive&&mt.emissiveMap)mt.emissiveIntensity=2;mt.needsUpdate=true})}});
+    car.updateMatrixWorld(true);
+    const ws=[];m.traverse(o=>{if(!o.isMesh&&/^Alpha[ _]-[ _](FR|FL|BR|BL)/.test(o.name))ws.push(o)});
+    ws.forEach(w=>{
+      const b=new T.Box3().setFromObject(w),ctr=b.getCenter(new T.Vector3()),sz=b.getSize(new T.Vector3());
+      const pv=new T.Object3D();w.parent.add(pv);pv.position.copy(w.parent.worldToLocal(ctr.clone()));pv.updateMatrixWorld(true);pv.attach(w);
+      const axW=sz.x<sz.z?new T.Vector3(1,0,0):new T.Vector3(0,0,1);
+      wheels.push({pv,axL:axW.transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:sz.y/2});
+    });
+  },undefined,()=>{});
+
+  // ---------- reflets dynamiques sur les carrosseries ----------
+  const cubeRT=new T.WebGLCubeRenderTarget(256,{format:T.RGBFormat,generateMipmaps:true,minFilter:T.LinearMipmapLinearFilter});
+  const cubeCam=new T.CubeCamera(.5,700,cubeRT);S.add(cubeCam);let envTick=0;
+
+  // ---------- brume au ras du sol ----------
+  const fogTex=radial([[0,'rgba(255,255,255,.6)'],[.5,'rgba(255,255,255,.2)'],[1,'rgba(255,255,255,0)']]);
+  const wisps=new T.Group();S.add(wisps);
+  for(let i=0;i<34;i++){const w=new T.Sprite(new T.SpriteMaterial({map:fogTex,color:[0x2f7bff,0x6ab0ff,0xff8a1f,0x9aa6c8][i%4],transparent:true,opacity:rnd(.05,.11),depthWrite:false,blending:T.AdditiveBlending}));
+    w.scale.set(rnd(12,22),rnd(2.5,4.5),1);w.position.set(rnd(-10,10),rnd(.4,1.4),rnd(-250,40));w.userData.s=rnd(.2,.7);wisps.add(w)}
+
+  // ---------- post-traitement : bloom + aberration / flou radial au boost + grain ----------
+  let composer=null,fx=null;
+  if(T.EffectComposer&&T.UnrealBloomPass&&T.ShaderPass){
+    composer=new T.EffectComposer(R);composer.addPass(new T.RenderPass(S,cam));
+    composer.addPass(new T.UnrealBloomPass(new T.Vector2(512,512),.62,.55,.5));
+    fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},amt:{value:0},time:{value:0}},
+      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader:`uniform sampler2D tDiffuse;uniform float amt,time;varying vec2 vUv;
+        float hs(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+        void main(){vec2 d=vUv-.5;float r=length(d);vec3 col=vec3(0.);
+          for(int i=0;i<8;i++){float f=float(i)/7.;vec2 uv=vUv-d*amt*.07*f;float ca=(.0025+amt*.014)*r;
+            col+=vec3(texture2D(tDiffuse,uv+d*ca).r,texture2D(tDiffuse,uv).g,texture2D(tDiffuse,uv-d*ca).b);}
+          col/=8.;
+          vec3 st=vec3(0.);for(int j=-7;j<=7;j++){vec3 c=texture2D(tDiffuse,vUv+vec2(float(j)*.014,0.)).rgb;st+=max(c-vec3(.72),0.)*(1.-abs(float(j))/8.);}
+          col+=st*vec3(.45,.65,1.)*.24;
+          col=mix(col,col*vec3(1.03,.99,1.06),.5)+vec3(0.,.005,.016);
+          col*=smoothstep(1.05,.28,r*(1.+amt*.4));
+          col+=(hs(vUv*vec2(1917.,1081.)+fract(time*7.))-.5)*.04;
+          gl_FragColor=vec4(col,1.);}`});
+    composer.addPass(fx);
+  }
+
+  // ---------- caméra pilotée par le scroll ----------
+  const K=[
+    {p:[3.4,1.35,8.6],ly:.9,lz:-3,sx:.24},   // hero : poursuite basse
+    {p:[-10.5,1.8,1.5],ly:1,lz:-1,sx:.24},     // travaux : travelling latéral
+    {p:[3.2,.7,-10.5],ly:1,lz:0,sx:.22},     // à propos : face aux phares
+    {p:[0,24,7],ly:0,lz:-6,sx:.2},            // services : plongée sur le pont
+    {p:[0,1.6,11],ly:4,lz:-60,sx:.2}          // contact : cap sur la ville
+  ];
+  const ease=t=>t*t*(3-2*t);
+  let prog=0,tProg=0,vel=0,lastY=scrollY,speed=16,boostK=0,ssK=0,gauge=100,hold=false,keyB=false,wasB=false,ssTime=0;
+  addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
+  ['pointerup','pointercancel','blur'].forEach(ev=>addEventListener(ev,()=>{hold=false;if(ev==='blur')keyB=false}));
+  addEventListener('keydown',e=>{if(e.code==='KeyB'||e.key==='Shift')keyB=true});
+  addEventListener('keyup',e=>{if(e.code==='KeyB'||e.key==='Shift')keyB=false});
+  const mm={x:0,y:0};addEventListener('mousemove',e=>{mm.x=e.clientX/innerWidth-.5;mm.y=e.clientY/innerHeight-.5});
+  function onScroll(){const m=document.documentElement.scrollHeight-innerHeight;tProg=m>0?scrollY/m:0}
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  let W=0,H=0;function size(){W=innerWidth;H=innerHeight;R.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();if(composer){composer.setPixelRatio(DPR);composer.setSize(W,H)}}
+  size();addEventListener('resize',size);
+  const kmh=$('#kmh'),garc=$('#garc'),gnum=$('#gnum'),ssEl=$('#ss');
+
+  const clock=new T.Clock();
+  (function loop(){requestAnimationFrame(loop);
+    const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+    // entrées / jauge
+    const boosting=(hold||keyB)&&gauge>0;
+    gauge=boosting?Math.max(0,gauge-30*dt):Math.min(100,gauge+12*dt);
+    if(boosting&&!wasB){ringT=0}wasB=boosting;
+    boostK+=((boosting?1:0)-boostK)*Math.min(1,dt*(boosting?7:3.5));
+    vel+=((Math.abs(scrollY-lastY)/Math.max(dt,.001))-vel)*Math.min(1,dt*5);lastY=scrollY;
+    const target=16+Math.min(50,vel*.03)+boostK*52;
+    speed+=(target-speed)*Math.min(1,dt*(boosting?2.2:1.4));
+    ssTime=speed>58?ssTime+dt:0;ssK+=((ssTime>.35?1:0)-ssK)*Math.min(1,dt*5);
+    const sk=Math.min(1,Math.max(0,(speed-16)/50));
+
+    // monde qui défile
+    const dz=speed*dt;
+    rt.offset.y+=dz/12;at.offset.y=rt.offset.y;
+    segs.children.forEach(g=>{g.position.z+=dz;if(g.position.z>190)g.position.z-=SEG*NS});
+    lamps.children.forEach(g=>{g.position.z+=dz;if(g.position.z>44)g.position.z-=spanL});
+    traffic.forEach(g=>{const on=g.userData.on,rel=on?speed+30:speed-g.userData.v;g.position.z+=rel*dt;if(g.position.z>70)g.position.z=on?rnd(-520,-420):rnd(-330,-260);else if(g.position.z<-560)g.position.z=rnd(-330,-260);g.userData.wh.forEach(w=>w.rotation.x-=dt*30);const tl=Math.min(26,Math.abs(rel)*.3);g.userData.tr.forEach(tm=>{tm.rotation.x=rel>0?-Math.PI/2:Math.PI/2;tm.scale.set(1,Math.max(.01,tl),1)})});
+    wisps.children.forEach(w=>{w.position.z+=dz*.85;w.position.x+=Math.sin(t*w.userData.s+w.position.z*.05)*dt*.5;if(w.position.z>45)w.position.z-=295});
+    blinkers.forEach(b=>b.material.opacity=Math.sin(t*3.2)>.55?1:.08);
+    for(let i=0;i<RN;i++){const o=i*6;let y=rp[o+1]-30*dt,z=rp[o+2]+dz*.55;if(y<0){rset(i,false);continue}if(z>26)z-=106;
+      rp[o+1]=y;rp[o+2]=z;rp[o+3]=rp[o];rp[o+4]=y+.9;rp[o+5]=z-(.12+speed*.012)}
+    rg.attributes.position.needsUpdate=true;
+    stMat.opacity=Math.max(sk*.5,boostK*.75);
+    streaks.forEach(m=>{m.position.z+=dz*2.4;m.scale.z=1+Math.max(sk,boostK)*4;if(m.position.z>40)m.position.z-=220});
+    wheels.forEach(w=>w.pv.rotateOnAxis(w.axL,-dz/w.r));
+
+    // voiture : poussée vers l'avant + cabrage au boost
+    car.position.z=-boostK*1.2;
+    car.position.y=Math.sin(t*11)*.01*(1+sk*2)+boostK*.03;
+    car.rotation.x=boostK*.035+Math.sin(t*23)*.004*boostK;
+    car.rotation.z=Math.sin(t*1.3)*.012;
+    car.updateMatrixWorld(true);
+
+    // flammes + particules + lumière
+    flames.forEach((f,i)=>{const k=boostK*(.6+Math.random()*.25);f.material.uniforms.k.value=k;f.material.uniforms.t.value=t;f.visible=k>.01;f.scale.set(1,(.55+boostK*.9)*(1+Math.random()*.22),1)});
+    trails.forEach(m=>{m.material.uniforms.k.value=ssK*.9;m.visible=ssK>.01;m.scale.y=.6+ssK*.6+sk*.4});
+    EXH.forEach(([ex,ey],i)=>em[i].copy(body.localToWorld(tmp.set(ex,ey,-1.66))));
+    if(boostK>.25){pAcc+=dt*360*boostK;const n=Math.floor(pAcc);pAcc-=n;emit(n,speed)}
+    for(let i=0;i<PN;i++){if(pLife[i]<=0)continue;const o=i*3;
+      pLife[i]-=dt/pDur[i];if(pLife[i]<=0){pLife[i]=0;pPos[o+1]=-999;continue}
+      pVel[o]*=1-2*dt;pVel[o+1]=pVel[o+1]*(1-2*dt)+1.2*dt;pVel[o+2]+=(speed*.8-pVel[o+2])*dt*1.5;
+      pPos[o]+=pVel[o]*dt;pPos[o+1]+=pVel[o+1]*dt;pPos[o+2]+=pVel[o+2]*dt}
+    pg.attributes.position.needsUpdate=true;pg.attributes.life.needsUpdate=true;pg.attributes.size.needsUpdate=true;
+    boostLight.position.set(0,.8,em[0].z+1.2);boostLight.intensity=boostK*(5+Math.random()*2);
+    ringT=Math.min(1,ringT+dt/.38);ring.position.set(0,.65,em[0].z+.2);ring.lookAt(cam.position);ring.scale.setScalar(1+ringT*7);ring.material.opacity=(1-ringT)*.9;
+
+    // caméra
+    prog+=(tProg-prog)*Math.min(1,dt*4);
+    const f=prog*(K.length-1),i=Math.min(K.length-2,Math.floor(f)),u=ease(f-i),a=K[i],b=K[i+1];
+    const L=(p,q)=>p+(q-p)*u,dk=Math.max(1,1.6/cam.aspect),mob=W<900,sh=sk*.02+boostK*.06;
+    cam.position.set((L(a.p[0],b.p[0])+mm.x*.8)*dk+(Math.random()-.5)*sh,L(a.p[1],b.p[1])*dk-mm.y*.3+(Math.random()-.5)*sh,L(a.p[2],b.p[2])*dk);
+    cam.lookAt(0,L(a.ly,b.ly),L(a.lz,b.lz));
+    cam.setViewOffset(W,H,mob?0:-L(a.sx,b.sx)*W,0,W,H);
+    cam.fov=(mob?60:45)+sk*4+boostK*9;cam.updateProjectionMatrix();
+    pMat.uniforms.sc.value=H*DPR/(2*Math.tan(cam.fov*Math.PI/360));
+    under.intensity=1.6+boostK*2;
+
+    // HUD
+    kmh.textContent=Math.round(speed*3);
+    garc.setAttribute('stroke-dasharray',(235.6*gauge/100).toFixed(1)+' 314.2');gnum.textContent=Math.round(gauge);
+    ssEl.classList.toggle('on',ssK>.5);
+
+    if(fx){fx.uniforms.amt.value=boostK*.55+ssK*.12;fx.uniforms.time.value=t}
+    if((envTick++%10)===0){car.visible=false;cubeCam.position.set(0,1.1,car.position.z);cubeCam.update(R,S);car.visible=true}
+    composer?composer.render():R.render(S,cam);
+  })();
+})();
+</script>
+</body>
+</html>
