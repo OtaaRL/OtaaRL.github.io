@@ -130,7 +130,7 @@ h1 span{color:var(--orange)}
 .skills li{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px;font:700 .9rem var(--head);letter-spacing:.12em;text-transform:uppercase}
 .skills i{display:block;height:8px;background:rgba(255,255,255,.08);transform:skewX(-20deg);position:relative}
 .skills i::after{content:"";position:absolute;inset:0;width:var(--v);background:linear-gradient(90deg,var(--blue),var(--orange))}
-.stats{display:flex;gap:28px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.stats{display:flex;flex-wrap:wrap;gap:20px 28px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 .stats b{display:block;font:900 2.2rem/1 var(--head);font-style:italic}
 .stats span{font-size:.88rem;color:var(--mut)}
 
@@ -236,7 +236,7 @@ h1 span{color:var(--orange)}
       <li>Web<i style="--v:74%"></i></li>
       <li>Coaching<i style="--v:68%"></i></li>
     </ul>
-    <div class="stats"><div><b>7+</b><span>Projets</span></div><div><b>6</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
+    <div class="stats"><div><b>200+</b><span>Heures de coaching</span></div><div><b>7+</b><span>Projets</span></div><div><b>6</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
   </div>
 </section>
 
@@ -301,7 +301,7 @@ const SITE = {
     {t:"Création 3D", d:"Scènes, affiches et visuels cinématiques.", p:"Sur devis", c:"#ff2a8a"},
     {t:"Motion & vidéo", d:"Annonces de roster, trailers, intros.", p:"Sur devis", c:"#9a5cff"},
     {t:"Web", d:"Sites vitrines sur mesure, rapides et soignés.", p:"Sur devis", c:"#2de2ff"},
-    {t:"Coaching", d:"Sessions personnalisées et plan de progression.", p:"10 €/h", c:"#ffb060"}
+    {t:"Coaching", d:"Plus de 200 h de coaching : analyse, plan de progression, suivi.", p:"10 €/h", c:"#ffb060"}
   ],
   socials: [{n:"X · @OtaaRL",u:"https://x.com/OtaaRL"},{n:"Twitch",u:"https://www.twitch.tv/otaa"},{n:"YouTube",u:"https://www.youtube.com/@OtaaRL"},{n:"Discord",u:"https://discord.gg/qCyFke9Mwc"}]
 };
