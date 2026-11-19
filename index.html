@@ -88,7 +88,7 @@ h2{font:500 clamp(2.2rem,3.6vw,3.1rem)/1 var(--head);text-transform:uppercase;le
 #hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,8,13,.6),rgba(7,8,13,.15) 45%,transparent 70%);pointer-events:none}
 .hero{position:relative;max-width:560px;user-select:none;-webkit-user-select:none}
 h1{font:500 clamp(4.2rem,9vw,8rem)/.9 var(--head);text-transform:uppercase;letter-spacing:.06em;margin:22px 0 26px;text-shadow:0 10px 40px rgba(20,4,20,.35)}
-h1 span{color:var(--orange)}
+h1 .rl{color:var(--orange)}
 .stripe{display:none}
 .hero p{font-size:clamp(1.02rem,1.4vw,1.15rem);color:#f1ecf2;max-width:38ch;margin-bottom:34px;text-shadow:0 2px 20px rgba(20,4,20,.5)}
 .hero p b{font-weight:600}
@@ -161,9 +161,76 @@ h1 span{color:var(--orange)}
   .hud{bottom:14px}.keys{display:none}
 }
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}}
+
+/* =========================================================
+   Couche "design" : préchargeur, typo cinétique, curseur,
+   lecture inertielle, cadre éditorial, marquee, tilt.
+   ========================================================= */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+html.loading{overflow:hidden}
+
+.pre{position:fixed;inset:0;z-index:1000;background:#07080d;display:grid;place-items:center;transition:transform 1.1s cubic-bezier(.77,0,.18,1)}
+.pre.done{transform:translateY(-100%)}
+.pre-in{position:relative;text-align:center;width:min(86vw,900px)}
+.pre-n{display:block;font:500 clamp(6rem,20vw,17rem)/.85 var(--head);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.pre-n small{font-size:.28em;letter-spacing:.1em;margin-left:.1em;color:var(--orange)}
+.pre-t{display:block;margin-top:26px;font:500 .78rem var(--head);letter-spacing:.7em;text-transform:uppercase;color:var(--soft);padding-left:.7em}
+.pre-bar{display:block;height:1px;background:rgba(255,255,255,.14);margin:22px auto 0;width:min(60vw,420px);position:relative;overflow:hidden}
+.pre-bar i{position:absolute;inset:0;background:var(--orange);transform-origin:left;transform:scaleX(0)}
+
+/* curseur */
+.cur,.cur-r{position:fixed;left:0;top:0;z-index:900;pointer-events:none;border-radius:50%;opacity:0;transition:opacity .3s}
+.cur{width:6px;height:6px;background:#fff;mix-blend-mode:difference;margin:-3px 0 0 -3px}
+.cur-r{width:38px;height:38px;border:1px solid rgba(255,255,255,.7);mix-blend-mode:difference;margin:-19px 0 0 -19px;transition:width .35s cubic-bezier(.2,.7,.2,1),height .35s cubic-bezier(.2,.7,.2,1),margin .35s cubic-bezier(.2,.7,.2,1),background .3s,opacity .3s}
+body.cursor-on .cur,body.cursor-on .cur-r{opacity:1}
+body.cursor-on,body.cursor-on a,body.cursor-on button{cursor:none}
+body.cursor-on video{cursor:auto}
+.cur-r.hov{width:72px;height:72px;margin:-36px 0 0 -36px;background:rgba(255,255,255,.9);border-color:transparent}
+.cur-r.hold{width:26px;height:26px;margin:-13px 0 0 -13px;background:var(--orange);border-color:transparent;mix-blend-mode:normal}
+
+/* cadre éditorial */
+.frame{position:fixed;inset:14px;z-index:30;pointer-events:none}
+.frame i{position:absolute;width:16px;height:16px;border:0 solid rgba(255,255,255,.55)}
+.frame i:nth-child(1){left:0;top:0;border-left-width:1px;border-top-width:1px}
+.frame i:nth-child(2){right:0;top:0;border-right-width:1px;border-top-width:1px}
+.frame i:nth-child(3){left:0;bottom:0;border-left-width:1px;border-bottom-width:1px}
+.frame i:nth-child(4){right:0;bottom:0;border-right-width:1px;border-bottom-width:1px}
+.frame b{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);font:500 .6rem var(--head);letter-spacing:.5em;color:rgba(255,255,255,.55);text-transform:uppercase;padding-left:.5em}
+
+/* typo cinétique */
+[data-split] .w{display:inline-block;overflow:hidden;vertical-align:top;padding:.04em .02em .1em;margin:-.04em -.02em -.1em}
+[data-split] .ch{display:inline-block;transform:translateY(110%) rotate(5deg);transition:transform 1s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*50ms + .15s)}
+body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{transform:none}
+
+/* hero : marquee géant */
+.hmq{position:absolute;left:0;right:0;bottom:-.06em;overflow:hidden;pointer-events:none;white-space:nowrap;opacity:.9}
+.hmq div{display:inline-block;font:600 clamp(5rem,15vw,15rem)/.9 var(--head);letter-spacing:.04em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.28);animation:hm 70s linear infinite}
+.hmq span{margin-right:.5em}
+@keyframes hm{to{transform:translateX(-50%)}}
+#hero .keys{position:relative;z-index:2}
+
+/* filigrane numérique des panneaux */
+.panel{overflow:hidden}
+.panel .wm{position:absolute;right:-.02em;top:-.14em;font:600 clamp(7rem,12vw,11rem)/1 var(--head);color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.13);pointer-events:none;letter-spacing:.02em;user-select:none}
+.panel>*:not(.wm){position:relative}
+.gbig .gimg{transition:transform .4s cubic-bezier(.2,.7,.2,1),box-shadow .4s;will-change:transform}
+.gbig .gimg.tilt{box-shadow:0 30px 60px -30px rgba(0,0,0,.7)}
+
+/* boutons : texte qui glisse */
+.btn{position:relative;overflow:hidden}
+.btn span{transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.btn:hover span{transform:translateY(-2px)}
+@media(hover:none){.cur,.cur-r{display:none}}
+@media(max-width:900px){.frame{display:none}.hmq div{font-size:5.5rem}}
 </style>
 </head>
 <body>
+
+<div class="pre" id="pre" aria-hidden="true"><div class="pre-in"><span class="pre-n"><span id="pren">0</span><small>%</small></span><span class="pre-bar"><i id="preb"></i></span><span class="pre-t">OtaaRL — Night drive</span></div></div>
+<div class="cur" id="cur"></div><div class="cur-r" id="curr"></div>
+<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i><b>Thomas Rubulotta — Portfolio 2026</b></div>
 
 <canvas id="gl" aria-hidden="true"></canvas>
 
@@ -201,7 +268,7 @@ h1 span{color:var(--orange)}
 <section id="hero">
   <div class="hero">
     <span class="label">Thomas Rubulotta — Artiste 3D</span>
-    <h1>OTAA<span>RL</span></h1>
+    <h1 data-split>OTAA<span class="rl">RL</span></h1>
     <div class="stripe"><i></i><i></i></div>
     <p><b>Je mets en scène Rocket League.</b> Scènes 3D, affiches et vidéos pour les équipes et événements esport, et des sites web qui vont avec.</p>
     <div class="btns">
@@ -210,6 +277,7 @@ h1 span{color:var(--orange)}
     </div>
     <div class="keys">Scroll pour avancer · <kbd>B</kbd> pour booster</div>
   </div>
+  <div class="hmq" aria-hidden="true"><div id="hmq"></div></div>
 </section>
 
 <section id="works">
@@ -224,7 +292,7 @@ h1 span{color:var(--orange)}
 <section id="about">
   <div class="panel rv">
     <span class="label">Étape 02 · Profil</span>
-    <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2>Ota.</h2><small>Thomas Rubulotta</small></div></div>
+    <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2 data-split>Ota.</h2><small>Thomas Rubulotta</small></div></div>
     <p>Créateur 3D, designer et développeur web. Je réalise des scènes, affiches et vidéos pour des équipes et événements esport.</p>
     <p><!-- ✏️ Complète avec ton parcours --></p>
     <ul class="skills">
@@ -240,7 +308,7 @@ h1 span{color:var(--orange)}
 <section id="services">
   <div class="panel rv">
     <span class="label">Étape 03 · Services</span>
-    <h2>Ce que je fais</h2>
+    <h2 data-split>Ce que je fais</h2>
     <ul class="shop" id="svcs"></ul>
   </div>
 </section>
@@ -248,7 +316,7 @@ h1 span{color:var(--orange)}
 <section id="contact">
   <div class="panel rv">
     <span class="label">Arrivée · Contact</span>
-    <h2>On roule ensemble ?</h2>
+    <h2 data-split>On roule ensemble ?</h2>
     <p>Un roster à annoncer, une affiche, une vidéo ou un site : raconte-moi ton projet.</p>
     <a class="mail" id="mail" href="mailto:Otaapro@gmail.com">Otaapro@gmail.com</a>
     <a class="btn o" id="mail2" href="mailto:Otaapro@gmail.com"><span>Écrire un e-mail</span></a>
@@ -271,6 +339,7 @@ h1 span{color:var(--orange)}
   addEventListener('scroll',f,{passive:true});addEventListener('load',f);f();
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/objects/Reflector.js"></script>
@@ -642,6 +711,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- modèle Fennec + roues animées ----------
   const wheels=[];
   if(T.GLTFLoader)new T.GLTFLoader().load('assets/car.glb',gltf=>{
+    window.__carReady=true;
     const m=gltf.scene,box=new T.Box3().setFromObject(m),size=box.getSize(new T.Vector3());
     m.scale.setScalar(3.4/Math.max(size.x,size.z));
     box.setFromObject(m);const c=box.getCenter(new T.Vector3());
@@ -664,7 +734,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
       const axW=sz.x<sz.z?new T.Vector3(1,0,0):new T.Vector3(0,0,1);
       wheels.push({pv,axL:axW.transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:sz.y/2});
     });
-  },undefined,()=>{});
+  },undefined,()=>{window.__carReady=true});
 
   // ---------- post-traitement : MSAA + bloom + grading + flou radial au boost ----------
   let composer=null,fx=null,bloom=null;
@@ -825,6 +895,73 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     if((envTick++%(bump>.02?12:90))===0){car.visible=false;cubeCam.position.set(0,1.2,car.position.z);cubeCam.update(R,S);car.visible=true}
     composer?composer.render():R.render(S,cam);
   })();
+})();
+</script>
+
+<script>
+/* ============ COUCHE DESIGN ============ */
+(function(){
+  const $=s=>document.querySelector(s),root=document.documentElement;
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  // --- marquee du hero ---
+  const m=['OTAARL','3D ARTIST','ROCKET LEAGUE','MOTION','NIGHT DRIVE'].map(w=>'<span>'+w+' —</span>').join('');
+  $('#hmq').innerHTML=m+m+m+m;
+
+  // --- typo cinétique : découpe en mots et en lettres (conserve les balises internes) ---
+  function split(el){let n=0;
+    (function walk(node){[...node.childNodes].forEach(c=>{
+      if(c.nodeType===3){const f=document.createDocumentFragment();
+        c.textContent.split(/(\s+)/).forEach(part=>{
+          if(/^\s+$/.test(part)||part===''){if(part)f.appendChild(document.createTextNode(' '));return}
+          const w=document.createElement('span');w.className='w';
+          [...part].forEach(ch=>{const s=document.createElement('span');s.className='ch';s.style.setProperty('--i',n++);s.textContent=ch;w.appendChild(s)});f.appendChild(w)});
+        c.replaceWith(f)}
+      else if(c.nodeType===1)walk(c)})})(el);el.setAttribute('aria-label',el.textContent)}
+  document.querySelectorAll('[data-split]').forEach(split);
+
+  // --- filigranes numériques ---
+  [['works','01'],['about','02'],['services','03'],['contact','04']].forEach(([id,n])=>{const p=$('#'+id+' .panel');if(p){const e=document.createElement('span');e.className='wm';e.setAttribute('aria-hidden','true');e.textContent=n;p.appendChild(e)}});
+
+  // --- lecture inertielle (Lenis) + ancres ---
+  let lenis=null;
+  if(window.Lenis&&!reduce){
+    lenis=new Lenis({lerp:.085,wheelMultiplier:.95,smoothWheel:true});
+    (function raf(t){lenis.raf(t);requestAnimationFrame(raf)})(0);
+    document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+      const el=document.querySelector(a.getAttribute('href'));if(!el)return;e.preventDefault();
+      lenis.scrollTo(el,{duration:1.9,easing:t=>1-Math.pow(1-t,4)})}));
+  }
+
+  // --- préchargeur ---
+  root.classList.add('loading');if(lenis)lenis.stop();
+  const pre=$('#pre'),pn=$('#pren'),pb=$('#preb');let v=0,t0=performance.now(),tl=t0,finished=false;
+  (function tick(){
+    const el=(performance.now()-t0)/1000,ready=window.__carReady||el>7;
+    const target=ready?100:Math.min(88,el*55);
+    const now=performance.now(),dtp=Math.min(.25,(now-tl)/1000);tl=now;v+=(target-v)*(1-Math.exp(-dtp*5));if(ready&&v>99.2)v=100;
+    pn.textContent=Math.round(v);pb.style.transform='scaleX('+v/100+')';
+    if(v>=100&&el>1.5&&!finished){finished=true;
+      setTimeout(()=>{pre.classList.add('done');root.classList.remove('loading');if(lenis)lenis.start();
+        setTimeout(()=>document.body.classList.add('ready'),650);setTimeout(()=>pre.remove(),1400)},250);return}
+    if(!finished)requestAnimationFrame(tick)})();
+  if(reduce){pre.remove();root.classList.remove('loading');document.body.classList.add('ready')}
+
+  // --- curseur personnalisé + boutons magnétiques + inclinaison ---
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+    document.body.classList.add('cursor-on');
+    const c=$('#cur'),r=$('#curr');let mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+    addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.transform='translate('+mx+'px,'+my+'px)';
+      const mg=e.target.closest&&e.target.closest('.btn');
+      document.querySelectorAll('.btn').forEach(b=>{if(b!==mg)b.style.transform=''});
+      if(mg){const q=mg.getBoundingClientRect();mg.style.transform='translate('+((e.clientX-(q.left+q.width/2))*.18)+'px,'+((e.clientY-(q.top+q.height/2))*.28)+'px)'}
+      const tl=e.target.closest&&e.target.closest('#gbig .gimg');
+      const g=$('#gbig .gimg');if(g){if(tl){const q=tl.getBoundingClientRect(),px=(e.clientX-q.left)/q.width-.5,py=(e.clientY-q.top)/q.height-.5;g.classList.add('tilt');g.style.transform='perspective(900px) rotateY('+(px*9)+'deg) rotateX('+(-py*9)+'deg) scale(1.02)'}else{g.classList.remove('tilt');g.style.transform=''}}});
+    (function loop(){rx+=(mx-rx)*.16;ry+=(my-ry)*.16;r.style.transform='translate('+rx+'px,'+ry+'px)';requestAnimationFrame(loop)})();
+    document.addEventListener('mouseover',e=>{r.classList.toggle('hov',!!(e.target.closest&&e.target.closest('a,button,.th')))});
+    addEventListener('mousedown',e=>{if(!e.target.closest('a,button,.panel,.top'))r.classList.add('hold')});
+    addEventListener('mouseup',()=>r.classList.remove('hold'));
+  }
 })();
 </script>
 </body>
