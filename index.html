@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OtaaRL Studio — 3D, motion &amp; web</title>
-<meta name="description" content="OtaaRL Studio : studio de création indépendant (Thomas Rubulotta). Visuels 3D, motion design et sites web pour les marques, les créateurs et l'esport.">
+<title>OtaaRL — 3D, motion &amp; web</title>
+<meta name="description" content="OtaaRL (Thomas Rubulotta) : créateur indépendant. Visuels 3D, motion design, sites web et coaching pour les marques, les créateurs et l'esport.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -327,9 +327,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
 </head>
 <body>
 
-<div class="pre" id="pre" aria-hidden="true"><div class="pre-in"><span class="pre-n"><span id="pren">0</span><small>%</small></span><span class="pre-bar"><i id="preb"></i></span><span class="pre-t">OtaaRL — Studio</span></div></div>
+<div class="pre" id="pre" aria-hidden="true"><div class="pre-in"><span class="pre-n"><span id="pren">0</span><small>%</small></span><span class="pre-bar"><i id="preb"></i></span><span class="pre-t">OtaaRL — Portfolio</span></div></div>
 <div class="cur" id="cur"></div><div class="cur-r" id="curr"></div>
-<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i><b>OtaaRL Studio — Thomas Rubulotta</b></div>
+<div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i><b>OtaaRL — Thomas Rubulotta</b></div>
 
 <a class="skip" href="#works">Aller au contenu</a>
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -340,7 +340,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
   <nav aria-label="Navigation principale"><ul class="tabs" id="tabs">
     <li><a href="#hero" data-s="hero"><span>Accueil</span></a></li>
     <li><a href="#works" data-s="works"><span>Projets</span></a></li>
-    <li><a href="#about" data-s="about"><span>Studio</span></a></li>
+    <li><a href="#about" data-s="about"><span>À propos</span></a></li>
     <li><a href="#services" data-s="services"><span>Services</span></a></li>
     <li><a href="#contact" data-s="contact"><span>Contact</span></a></li>
   </ul></nav>
@@ -353,7 +353,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
   <ol id="route">
     <li><a href="#hero" data-s="hero"><i></i><span>Accueil</span></a></li>
     <li><a href="#works" data-s="works"><i></i><span>Projets</span></a></li>
-    <li><a href="#about" data-s="about"><i></i><span>Studio</span></a></li>
+    <li><a href="#about" data-s="about"><i></i><span>À propos</span></a></li>
     <li><a href="#services" data-s="services"><i></i><span>Services</span></a></li>
     <li><a href="#contact" data-s="contact"><i></i><span>Contact</span></a></li>
   </ol>
@@ -376,7 +376,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
 <main>
 <section id="hero">
   <div class="hero">
-    <span class="label">Studio de création · 3D · Motion · Web</span>
+    <span class="label">Créateur indépendant · 3D · Motion · Web</span>
     <h1 data-split>OTAA<span class="rl">RL</span></h1>
     <div class="stripe"><i></i><i></i></div>
     <p><b>Des images qui marquent.</b> Visuels 3D, motion design et sites web pour les marques, les créateurs et l'esport. Ils m'ont fait confiance : GroundZero, Lakitue, Voltage, DayLight.</p>
@@ -400,9 +400,9 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
 
 <section id="about">
   <div class="panel rv">
-    <span class="label">02 · Le studio</span>
+    <span class="label">02 · À propos</span>
     <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2 data-split>Ota.</h2><small>Thomas Rubulotta</small></div></div>
-    <p>OtaaRL est un studio de création indépendant, mené par Thomas Rubulotta : 3D, motion, web et coaching. Un seul interlocuteur de l'idée au rendu final.</p>
+    <p>Moi c'est Thomas, alias OtaaRL : créateur indépendant en 3D, motion, web et coaching. Un seul interlocuteur, de l'idée au rendu final.</p>
     <p><!-- ✏️ Complète avec ton parcours --></p>
     <ul class="skills">
       <li>3D<i style="--v:92%"></i></li>
@@ -484,7 +484,7 @@ const SITE = {
 };
 /* ======================================================= */
 const $=s=>document.querySelector(s);
-const tp=['OTAARL STUDIO','ESPORT','3D','MOTION','ROCKET LEAGUE','RLCS','WEB'].map(w=>`<span>${w}</span><span>✦</span>`).join('');
+const tp=['OTAARL','ESPORT','3D','MOTION','ROCKET LEAGUE','RLCS','WEB'].map(w=>`<span>${w}</span><span>✦</span>`).join('');
 
 // garage des créations : une grande vignette + une bande de miniatures
 (function(){
@@ -759,7 +759,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   // --- marquee du hero ---
-  const m=['OTAARL STUDIO','3D','MOTION','WEB','DIRECTION ARTISTIQUE'].map(w=>'<span>'+w+' —</span>').join('');
+  const m=['OTAARL','3D','MOTION','WEB','DIRECTION ARTISTIQUE'].map(w=>'<span>'+w+' —</span>').join('');
   $('#hmq').innerHTML=m+m+m+m;
 
   // --- typo cinétique : découpe en mots et en lettres (conserve les balises internes) ---
