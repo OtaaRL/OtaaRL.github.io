@@ -224,6 +224,82 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
 .btn:hover span{transform:translateY(-2px)}
 @media(hover:none){.cur,.cur-r{display:none}}
 @media(max-width:900px){.frame{display:none}.hmq div{font-size:5.5rem}}
+
+/* =========================================================
+   EXPÉRIENCE MOBILE : la scène occupe le haut de l'écran,
+   le contenu vit dans une feuille en bas, une barre d'onglets
+   et un vrai bouton de boost sous le pouce.
+   ========================================================= */
+.dock,.boostbtn{display:none}
+@media(max-width:900px){
+  :root{--dock:calc(60px + env(safe-area-inset-bottom,0px))}
+  body{font-size:15.5px;line-height:1.6}
+  .top{padding:16px 18px 34px}
+  .top .btn{display:none}
+  .brand{font-size:1.05rem}
+  .hud{top:12px;bottom:auto;right:16px;gap:10px;align-items:center}
+  .gauge{width:44px;height:44px}.gauge circle{stroke-width:7}.gauge span{font-size:.8rem}
+  .spd{padding:0}.spd b{font-size:1.3rem}.spd small{font-size:.48rem}
+  .ss{display:none}
+  .dock{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:60;height:var(--dock);padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(7,8,13,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+  .dock a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:500 .6rem/1 var(--head);letter-spacing:.18em;text-transform:uppercase;color:var(--mut);-webkit-tap-highlight-color:transparent}
+  .dock a::before{content:"";width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.28);transition:.3s}
+  .dock a.on{color:#fff}.dock a.on::before{background:var(--orange);transform:scale(1.8);box-shadow:0 0 10px var(--orange)}
+  .boostbtn{display:grid;place-items:center;position:fixed;right:16px;top:74px;z-index:61;width:58px;height:58px;border-radius:50%;border:1px solid rgba(255,255,255,.45);background:rgba(7,8,13,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font:600 .64rem/1 var(--head);letter-spacing:.2em;padding-left:.2em;color:#fff;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none;-webkit-user-select:none;transition:background .2s,border-color .2s,transform .2s,color .2s}
+  .boostbtn.on{background:var(--orange);border-color:var(--orange);color:#0a0a0a;transform:scale(1.1);box-shadow:0 0 34px var(--orange)}
+
+  section{min-height:100svh;padding:0 14px calc(var(--dock) + 14px);align-items:flex-end}
+  .panel,.garage{max-width:none;max-height:54svh;padding:18px 16px;border-radius:6px}
+  .panel .wm{font-size:5.5rem;top:-.12em}
+  .label{font-size:.62rem;letter-spacing:.24em}
+  h2{font-size:1.85rem;margin:8px 0 10px}
+
+  /* hero : le titre en bas, la voiture en haut */
+  #hero{padding-bottom:calc(var(--dock) + 18px)}
+  #hero::before{background:linear-gradient(0deg,rgba(7,8,13,.92) 0%,rgba(7,8,13,.55) 34%,transparent 62%)}
+  .hero{max-width:none}
+  h1{font-size:clamp(3.6rem,20vw,5.6rem);margin:8px 0 12px;letter-spacing:.05em}
+  .hero p{font-size:.95rem;line-height:1.5;margin-bottom:18px;max-width:none;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .btns{gap:8px;flex-wrap:nowrap}
+  .btn{padding:14px 16px;flex:1;text-align:center}.btn span{font-size:.72rem;letter-spacing:.18em}
+  .keys,.hmq,.frame,.route,.tabs{display:none}
+
+  /* créations : une carte compacte, swipe gauche/droite */
+  .gbig{grid-template-columns:1fr;gap:12px;margin-top:10px}
+  .gbig .gimg{aspect-ratio:16/9}
+  .gbig h3{font-size:1.3rem;margin:8px 0 2px}
+  .gbig p{display:none}
+  .gtxt{flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .gtxt .label{width:100%}
+  .gtxt h3{flex:1;min-width:0}
+  .gtxt .btn{flex:none;padding:12px 14px}
+  .gnav{margin-top:12px}
+  .gstrip{display:flex;overflow-x:auto;gap:6px;margin-top:12px;scrollbar-width:none;padding-bottom:2px}
+  .gstrip::-webkit-scrollbar{display:none}
+  .th{flex:0 0 46px;aspect-ratio:1}
+
+  /* profil */
+  .prof{margin:10px 0 10px;gap:12px}.prof img{width:50px;height:50px}
+  .prof h2{font-size:1.6rem}
+  #about .panel p{font-size:.92rem;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  #about .panel p:empty{display:none}
+  .skills{display:none}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;padding-top:14px}
+  .stats b{font-size:1.4rem}.stats span{font-size:.68rem;line-height:1.25;display:block;margin-top:3px}
+
+  /* services */
+  .shop li{grid-template-columns:26px 1fr auto;gap:10px;padding:11px 0}
+  .shop h3{font-size:1.02rem}
+  .shop p{font-size:.8rem;margin-top:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .shop b{font-size:.72rem}
+
+  /* contact */
+  .mail{font-size:1.25rem;margin:12px 0 16px}
+  #contact .panel>p:not(.foot){font-size:.92rem;margin-bottom:6px}
+  .soc{gap:8px 16px;margin-top:18px}
+  .foot{margin-top:16px}
+  .chap{letter-spacing:.35em;padding-left:.35em;font-size:1.25rem}
+}
 </style>
 </head>
 <body>
@@ -263,6 +339,11 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
   <div class="spd"><b id="kmh">48</b><small>KM/H</small></div>
   <div class="gauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="bg"/><circle cx="60" cy="60" r="50" class="fg" id="garc"/></svg><span id="gnum">100</span><em>BOOST</em></div>
 </div>
+
+<nav class="dock" aria-label="Navigation mobile">
+  <a href="#hero" data-s="hero">Jouer</a><a href="#works" data-s="works">Créations</a><a href="#about" data-s="about">Profil</a><a href="#services" data-s="services">Services</a><a href="#contact" data-s="contact">Contact</a>
+</nav>
+<button class="boostbtn" id="boostbtn" aria-label="Maintenir pour booster">Boost</button>
 
 <main>
 <section id="hero">
@@ -399,7 +480,8 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   if(!window.THREE)return;
   const T=THREE,cv=$('#gl');
   const R=new T.WebGLRenderer({canvas:cv,antialias:false,powerPreference:'high-performance'});
-  let DPR=Math.min(devicePixelRatio,1.75);R.setPixelRatio(DPR);
+  const MOB=matchMedia('(max-width:900px)').matches;
+  let DPR=Math.min(devicePixelRatio,MOB?1.25:1.75);R.setPixelRatio(DPR);
   R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
   const HAZE=new T.Color(0xe0607a);
   const S=new T.Scene();S.fog=new T.Fog(HAZE,70,560);
@@ -484,7 +566,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   [-1,1].forEach(sd=>{const v=new T.Mesh(new T.PlaneGeometry(2.6,640),new T.MeshStandardMaterial({color:0x4a2b34,roughness:1}));v.rotation.x=-Math.PI/2;v.position.set(sd*7.5,-.012,0);v.receiveShadow=true;dayG.add(v)});
 
   // ---------- herbe : 12 000 brins en instances, balayés par le vent ----------
-  const GN=12000,gGeo=new T.BufferGeometry();
+  const GN=MOB?5000:12000,gGeo=new T.BufferGeometry();
   gGeo.setAttribute('position',new T.Float32BufferAttribute([-.035,0,0,.035,0,0,0,1,0],3));
   const grass=new T.InstancedMesh(gGeo,new T.ShaderMaterial({side:T.DoubleSide,fog:false,
     uniforms:{uOff:{value:0},uT:{value:0},fc:{value:HAZE}},
@@ -648,7 +730,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- lumières ----------
   const hemiD=new T.HemisphereLight(0xff9a78,0x4a2448,.65);S.add(hemiD);
   const sunL=new T.DirectionalLight(0xffa066,3.4);
-  sunL.castShadow=true;sunL.shadow.mapSize.set(2048,2048);sunL.shadow.bias=-.0004;sunL.shadow.normalBias=.03;
+  sunL.castShadow=true;sunL.shadow.mapSize.set(MOB?1024:2048,MOB?1024:2048);sunL.shadow.bias=-.0004;sunL.shadow.normalBias=.03;
   Object.assign(sunL.shadow.camera,{left:-11,right:11,top:11,bottom:-11,near:2,far:150});
   S.add(sunL,sunL.target);
   const fillL=new T.DirectionalLight(0x78a8ff,1.1);fillL.position.set(12,5,8);S.add(fillL);
@@ -739,7 +821,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- post-traitement : MSAA + bloom + grading + flou radial au boost ----------
   let composer=null,fx=null,bloom=null;
   if(T.EffectComposer&&T.UnrealBloomPass&&T.ShaderPass){
-    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat});rtg.samples=4}catch(e){rtg=undefined}
+    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat});rtg.samples=MOB?2:4}catch(e){rtg=undefined}
     composer=new T.EffectComposer(R,rtg);composer.addPass(new T.RenderPass(S,cam));
     bloom=new T.UnrealBloomPass(new T.Vector2(512,512),.38,.6,.86);composer.addPass(bloom);
     fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},amt:{value:0},time:{value:0},flash:{value:0}},
@@ -781,7 +863,8 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   function smoothDamp(cur,tg,v,st,dt){const o=2/st,x=o*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=cur-tg,tm=(v+o*ch)*dt;return[tg+(ch+tm)*e,(v-o*tm)*e]}
   let progV=0,lastTh=KC[0].th,rollS=0,phase=0,trT=-1,trDir=1;const chap=$('#chap');
   let prog=0,tProg=0,vel=0,lastY=scrollY,speed=16,boostK=0,ssK=0,gauge=100,hold=false,keyB=false,wasB=false,ssTime=0;
-  addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
+  addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
+  window.__setBoost=v=>{hold=v};
   ['pointerup','pointercancel','blur'].forEach(ev=>addEventListener(ev,()=>{hold=false;if(ev==='blur')keyB=false}));
   addEventListener('keydown',e=>{if(e.code==='KeyB'||e.key==='Shift')keyB=true});
   addEventListener('keyup',e=>{if(e.code==='KeyB'||e.key==='Shift')keyB=false});
@@ -877,13 +960,13 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     const kc=j=>KC[Math.max(0,Math.min(K.length-1,j))];
     const cr=key=>{const a0=kc(i-1)[key],a1=kc(i)[key],a2=kc(i+1)[key],a3=kc(i+2)[key];return .5*(2*a1+(-a0+a2)*u+(2*a0-5*a1+4*a2-a3)*u*u+(-a0+3*a1-3*a2+a3)*u*u*u)};
     const th=cr('th'),rad=Math.max(3,cr('r')),cy=Math.max(.6,cr('y'));
-    const dk=Math.max(1,1.6/cam.aspect),mob=W<900,sh=sk*.02+boostK*.06;
+    const mob=W<900,dk=mob?1.4:Math.max(1,1.6/cam.aspect),sh=sk*.02+boostK*.06;
     cam.position.set((Math.sin(th)*rad+mm.x*.25)*dk+(Math.random()-.5)*sh,cy*dk-mm.y*.1+(Math.random()-.5)*sh,Math.cos(th)*rad*dk+car.position.z*.3);
     cam.lookAt(cr('lx'),cr('ly'),cr('lz'));
     // léger roulis quand la caméra tourne vite (effet steadicam)
     const rl=Math.max(-.05,Math.min(.05,-(th-lastTh)/Math.max(dt,1e-3)*.03));lastTh=th;rollS+=(rl-rollS)*Math.min(1,dt*2.5);cam.rotateZ(rollS);
-    cam.setViewOffset(W,H,mob?0:-cr('sx')*W,0,W,H);
-    cam.fov=(mob?58:40)+sk*4+boostK*9+env*14;cam.updateProjectionMatrix();
+    cam.setViewOffset(W,H,mob?0:-cr('sx')*W,mob?Math.round(H*.2):0,W,H);
+    cam.fov=(mob?50:40)+sk*4+boostK*9+env*14;cam.updateProjectionMatrix();
     pMat.uniforms.sc.value=H*DPR/(2*Math.tan(cam.fov*Math.PI/360));
 
     // HUD
@@ -962,6 +1045,20 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     addEventListener('mousedown',e=>{if(!e.target.closest('a,button,.panel,.top'))r.classList.add('hold')});
     addEventListener('mouseup',()=>r.classList.remove('hold'));
   }
+})();
+</script>
+
+<script>
+(function(){
+  const b=document.getElementById('boostbtn');if(!b)return;
+  const on=v=>e=>{e.preventDefault();b.classList.toggle('on',v);if(window.__setBoost)window.__setBoost(v);if(v&&navigator.vibrate)navigator.vibrate(12)};
+  b.addEventListener('pointerdown',on(true));['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,on(false)));
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  // swipe horizontal sur la carte des créations
+  const g=document.getElementById('gbig');let x0=null,y0=null;
+  g.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  g.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
+    if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.4)document.getElementById(dx<0?'gnext':'gprev').click()},{passive:true});
 })();
 </script>
 </body>
