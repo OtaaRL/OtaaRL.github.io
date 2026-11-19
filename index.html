@@ -696,6 +696,11 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     {p:[-4,2.4,20],ly:3,lx:-2,lz:-40,sx:.12}          // arrivée : grand plan vers le soleil
   ];
   const ease=t=>t*t*(3-2*t);
+  const KC=[];K.forEach((k,j)=>{let th=Math.atan2(k.p[0],k.p[2]);if(j){const pr=KC[j-1].th;while(th-pr>Math.PI)th-=2*Math.PI;while(th-pr<-Math.PI)th+=2*Math.PI}
+    KC.push({th,r:Math.hypot(k.p[0],k.p[2]),y:k.p[1],lx:k.lx,ly:k.ly,lz:k.lz,sx:k.sx})});
+  // amorti critique (ease-in / ease-out naturel, sans à-coups)
+  function smoothDamp(cur,tg,v,st,dt){const o=2/st,x=o*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=cur-tg,tm=(v+o*ch)*dt;return[tg+(ch+tm)*e,(v-o*tm)*e]}
+  let progV=0,lastTh=KC[0].th,rollS=0;
   let prog=0,tProg=0,vel=0,lastY=scrollY,speed=16,boostK=0,ssK=0,gauge=100,hold=false,keyB=false,wasB=false,ssTime=0;
   addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
   ['pointerup','pointercancel','blur'].forEach(ev=>addEventListener(ev,()=>{hold=false;if(ev==='blur')keyB=false}));
@@ -778,12 +783,18 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     ringT=Math.min(1,ringT+dt/.38);ring.position.set(0,.65,em[0].z+.2);ring.lookAt(cam.position);ring.scale.setScalar(1+ringT*4);ring.material.opacity=(1-ringT)*.3;
 
     // caméra
-    prog+=(tProg-prog)*Math.min(1,dt*4);
-    const f=prog*(K.length-1),i=Math.min(K.length-2,Math.floor(f)),u=ease(f-i),a=K[i],b=K[i+1];
-    const L=(p,q)=>p+(q-p)*u,dk=Math.max(1,1.6/cam.aspect),mob=W<900,sh=sk*.02+boostK*.06;
-    cam.position.set((L(a.p[0],b.p[0])+mm.x*.25)*dk+(Math.random()-.5)*sh,L(a.p[1],b.p[1])*dk-mm.y*.1+(Math.random()-.5)*sh,L(a.p[2],b.p[2])*dk);
-    cam.lookAt(L(a.lx,b.lx),L(a.ly,b.ly),L(a.lz,b.lz));
-    cam.setViewOffset(W,H,mob?0:-L(a.sx,b.sx)*W,0,W,H);
+    {const sd=smoothDamp(prog,tProg,progV,.6,dt);prog=sd[0];progV=sd[1]}
+    // spline Catmull-Rom sur les plans : la caméra tourne autour de la voiture en arcs continus
+    const f=Math.min(K.length-1-1e-6,Math.max(0,prog*(K.length-1))),i=Math.floor(f),u=f-i;
+    const kc=j=>KC[Math.max(0,Math.min(K.length-1,j))];
+    const cr=key=>{const a0=kc(i-1)[key],a1=kc(i)[key],a2=kc(i+1)[key],a3=kc(i+2)[key];return .5*(2*a1+(-a0+a2)*u+(2*a0-5*a1+4*a2-a3)*u*u+(-a0+3*a1-3*a2+a3)*u*u*u)};
+    const th=cr('th'),rad=Math.max(3,cr('r')),cy=Math.max(.6,cr('y'));
+    const dk=Math.max(1,1.6/cam.aspect),mob=W<900,sh=sk*.02+boostK*.06;
+    cam.position.set((Math.sin(th)*rad+mm.x*.25)*dk+(Math.random()-.5)*sh,cy*dk-mm.y*.1+(Math.random()-.5)*sh,Math.cos(th)*rad*dk+car.position.z*.3);
+    cam.lookAt(cr('lx'),cr('ly'),cr('lz'));
+    // léger roulis quand la caméra tourne vite (effet steadicam)
+    const rl=Math.max(-.05,Math.min(.05,-(th-lastTh)/Math.max(dt,1e-3)*.03));lastTh=th;rollS+=(rl-rollS)*Math.min(1,dt*2.5);cam.rotateZ(rollS);
+    cam.setViewOffset(W,H,mob?0:-cr('sx')*W,0,W,H);
     cam.fov=(mob?58:40)+sk*4+boostK*9;cam.updateProjectionMatrix();
     pMat.uniforms.sc.value=H*DPR/(2*Math.tan(cam.fov*Math.PI/360));
 
