@@ -634,9 +634,16 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
       o.material=one?out[0]:out});
     m.updateMatrixWorld(true);
     const ws=[];m.traverse(o=>{if(!o.isMesh&&/^Alpha[ _]-[ _](FR|FL|BR|BL)/.test(o.name))ws.push(o)});
-    ws.forEach(w=>{const b=new T.Box3().setFromObject(w),ctr=b.getCenter(new T.Vector3()),s2=b.getSize(new T.Vector3());
+    // axe et centre réels de chaque roue (analyse des sommets) : plus de balancement si la roue est carrossée ou décentrée
+    ws.forEach(w=>{const P=[],v=new T.Vector3();w.traverse(o=>{if(o.isMesh&&o.geometry.attributes.position){const at=o.geometry.attributes.position,st=Math.max(1,Math.floor(at.count/400));for(let i=0;i<at.count;i+=st){P.push(v.fromBufferAttribute(at,i).applyMatrix4(o.matrixWorld).clone())}}});
+      if(P.length<8)return;
+      const ctr=new T.Vector3();P.forEach(q=>ctr.add(q));ctr.divideScalar(P.length);
+      let c=[0,0,0,0,0,0];P.forEach(q=>{const x=q.x-ctr.x,y=q.y-ctr.y,z=q.z-ctr.z;c[0]+=x*x;c[1]+=y*y;c[2]+=z*z;c[3]+=x*y;c[4]+=x*z;c[5]+=y*z});
+      const tr=c[0]+c[1]+c[2],M=[tr-c[0],-c[3],-c[4],-c[3],tr-c[1],-c[5],-c[4],-c[5],tr-c[2]];
+      let ax=new T.Vector3(1,.3,.2).normalize();for(let k=0;k<40;k++){ax.set(M[0]*ax.x+M[1]*ax.y+M[2]*ax.z,M[3]*ax.x+M[4]*ax.y+M[5]*ax.z,M[6]*ax.x+M[7]*ax.y+M[8]*ax.z).normalize()}
+      let rad=0;P.forEach(q=>{const d=q.clone().sub(ctr);d.addScaledVector(ax,-d.dot(ax));rad=Math.max(rad,d.length())});
       const pv=new T.Object3D();w.parent.add(pv);pv.position.copy(w.parent.worldToLocal(ctr.clone()));pv.updateMatrixWorld(true);pv.attach(w);
-      const axW=s2.x<s2.z?new T.Vector3(1,0,0):new T.Vector3(0,0,1);wheels.push({pv,axL:axW.transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:s2.y/2})});
+      wheels.push({pv,axL:ax.clone().transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:Math.max(.05,rad)})});
     R.shadowMap.needsUpdate=true;carOK=true;window.__carReady=true},undefined,()=>{window.__carReady=true;REV.value=1});
   else window.__carReady=true;
 
