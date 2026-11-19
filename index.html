@@ -738,6 +738,13 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const wrap=(list,dz)=>{for(let i=0;i<list.length;i++){const a=list[i],o=a.o;o.position.z+=dz*a.k;if(o.position.z>a.lim)o.position.z-=a.span}};
   const LEN=1200,LZ=-350,PW=12.4;
   const noiseDots=(g,w,h,n,col)=>{for(let i=0;i<n;i++){g.fillStyle=col+Math.random()*.06+')';g.fillRect(Math.random()*w,Math.random()*h,2,2)}};
+  const TL=new T.TextureLoader();
+  const loadTex=(u,rx,ry,opt)=>{const t=TL.load(u);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=8;if(opt&&opt.noMip){t.generateMipmaps=false;t.minFilter=T.LinearFilter}return t};
+  // ciel : vrai panorama photo (Poly Haven, CC0), orientable
+  const skyPhoto=(file,yaw,exp)=>{const t=TL.load('assets/sky-'+file+(MOB?'-2k.jpg':'-4k.jpg'));t.generateMipmaps=false;t.minFilter=T.LinearFilter;t.magFilter=T.LinearFilter;
+    return new T.Mesh(new T.SphereGeometry(980,48,32),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{map:{value:t},yaw:{value:yaw},ex:{value:exp}},
+      vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader:'varying vec3 p;uniform sampler2D map;uniform float yaw,ex;void main(){vec3 d=normalize(p);float c=cos(yaw),s=sin(yaw);d=vec3(c*d.x+s*d.z,d.y,-s*d.x+c*d.z);vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))*.3183099+.5);gl_FragColor=vec4(texture2D(map,uv).rgb*ex,1.);}'}))};
   const skyB=new T.Mesh(new T.SphereGeometry(990,32,16),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,
     uniforms:{zc:{value:new T.Color()},mc:{value:new T.Color()},hc:{value:new T.Color()},nc:{value:new T.Color()},na:{value:0},t:{value:0}},
     vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
@@ -761,9 +768,11 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   if(hasMir2){const mir=new T.Reflector(new T.PlaneGeometry(1000,LEN),{textureWidth:Math.round(innerWidth*DPR*.5),textureHeight:Math.round(innerHeight*DPR*.5),color:0xa3b6c8,clipBias:.003});mir.rotation.x=-Math.PI/2;mir.position.set(0,WTY,LZ);arenaG.add(mir)}
   const tint=new T.Mesh(new T.PlaneGeometry(1000,LEN),new T.MeshBasicMaterial({color:0x04121c,transparent:true,opacity:hasMir2?.38:1,depthWrite:false}));tint.rotation.x=-Math.PI/2;tint.position.set(0,WTY+.01,LZ);arenaG.add(tint);
   const dk=new T.Mesh(new T.BoxGeometry(PW+1.6,.9,LEN),new T.MeshStandardMaterial({color:0x0a0e15,roughness:.6,metalness:.2}));dk.position.set(0,-.46,LZ);arenaG.add(dk);
-  const dLaneT=ctex(cvs(256,512,(g,w,h)=>{g.fillStyle='#0f131b';g.fillRect(0,0,w,h);noiseDots(g,w,h,3500,'rgba(190,210,255,');g.fillStyle='#dfe8f2';g.fillRect(9,0,5,h);g.fillRect(242,0,5,h);g.fillStyle='#f0c48a';g.fillRect(125,40,6,190);g.fillRect(125,296,6,190)}),1,LEN/12.3);
-  const dLane=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshStandardMaterial({map:dLaneT,roughness:.38,metalness:.15}));dLane.rotation.x=-Math.PI/2;dLane.position.set(0,.004,LZ);arenaG.add(dLane);
-  const hglow=sprite(0xff8a5e,1500,300,.5);hglow.material.fog=false;hglow.position.set(0,16,-900);arenaG.add(hglow);
+  const dAsT=loadTex('assets/tex-asphalt_diff.jpg',PW/3,LEN/3),dAsN=loadTex('assets/tex-asphalt_nor.jpg',PW/3,LEN/3);
+  const dLane=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshStandardMaterial({map:dAsT,normalMap:dAsN,color:0x8a8f9a,roughness:.5,metalness:.1}));dLane.rotation.x=-Math.PI/2;dLane.position.set(0,.004,LZ);arenaG.add(dLane);
+  const dMkT=ctex(cvs(256,512,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='#dfe8f2';g.fillRect(9,0,5,h);g.fillRect(242,0,5,h);g.fillStyle='#f0c48a';g.fillRect(125,40,6,190);g.fillRect(125,296,6,190)}),1,LEN/12.3);
+  const dMk=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshBasicMaterial({map:dMkT,transparent:true,opacity:.9,depthWrite:false}));dMk.rotation.x=-Math.PI/2;dMk.position.set(0,.007,LZ);arenaG.add(dMk);
+  const skyH1=skyPhoto('belfast',0,1.05);arenaG.add(skyH1);
   const GWK=SITE.works;
   function poster(w,idx){const c=document.createElement('canvas');c.width=1024;c.height=576;const g=c.getContext('2d');g.fillStyle='#07080f';g.fillRect(0,0,1024,576);
     const t=new T.CanvasTexture(c);t.anisotropy=8;
@@ -782,14 +791,14 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
      const sc=new T.Mesh(new T.PlaneGeometry(20,11.25),new T.MeshBasicMaterial({map:posters[i%GWK.length],fog:false}));sc.position.set(0,12.6,0);g.add(sc);
      const gl=sprite(0xbcd8ff,46,30,.2);gl.position.set(0,12.6,.5);g.add(gl);
      arenaG.add(g);arenaW.push({o:g,k:1,lim:z0+SP*.5,span:N*SP})}}
-  const arenaUp=(dz,t,dt)=>{dLaneT.offset.y+=dz/12.3;wrap(arenaW,dz)};
+  const arenaUp=(dz,t,dt)=>{dAsT.offset.y+=dz/3;dAsN.offset.y=dAsT.offset.y;dMkT.offset.y+=dz/12.3;wrap(arenaW,dz)};
 
   // ---------- 04 · DÉSERT : dunes sculptées, quatre monolithes (3D · Motion · Web · Coaching) ----------
   const studioG=new T.Group();studioG.visible=false;S.add(studioG);const studioW=[];
   const GL=`float hs(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
     float ns(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hs(i),hs(i+vec2(1.,0.)),f.x),mix(hs(i+vec2(0.,1.)),hs(i+vec2(1.,1.)),f.x),f.y);}`;
   const duneM=new T.ShaderMaterial({fog:false,
-    uniforms:{uOff:{value:0},uSun:{value:new T.Vector3(-.64,.49,-.58)},uFog:{value:new T.Color(0xe8cfa8)},uFN:{value:90},uFF:{value:520},uCam:{value:new T.Vector3()}},
+    uniforms:{uOff:{value:0},uSun:{value:new T.Vector3(-.64,.49,-.58)},uFog:{value:new T.Color(0xe8cfa8)},uFN:{value:90},uFF:{value:520},uCam:{value:new T.Vector3()},uSand:{value:loadTex('assets/tex-sand_diff.jpg',1,1)}},
     vertexShader:`uniform float uOff;varying vec3 vN;varying vec3 vP;${GL}
       float H(vec2 p){float ax=abs(p.x),m=smoothstep(30.,80.,ax),m2=smoothstep(12.,24.,ax);
         float w=ns(p*.008+3.)*2.-1.;float d=fract(p.x*.012+w*.9+ns(p*.004)*1.6);
@@ -798,19 +807,21 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
       void main(){vec2 p=vec2(position.x,position.z-uOff);float h=H(p),e=1.4;
         vN=normalize(vec3(H(p-vec2(e,0.))-H(p+vec2(e,0.)),2.*e,H(p-vec2(0.,e))-H(p+vec2(0.,e))));
         vP=vec3(position.x,h,position.z);gl_Position=projectionMatrix*modelViewMatrix*vec4(position.x,h-.03,position.z,1.);}`,
-    fragmentShader:`uniform vec3 uSun,uFog,uCam;uniform float uFN,uFF;varying vec3 vN;varying vec3 vP;${GL}
+    fragmentShader:`uniform vec3 uSun,uFog,uCam;uniform float uFN,uFF;uniform sampler2D uSand;varying vec3 vN;varying vec3 vP;${GL}
       void main(){vec3 n=normalize(vN);float ndl=dot(n,uSun),lit=smoothstep(-.12,.8,ndl);
         vec3 col=mix(vec3(.30,.16,.15),vec3(.96,.75,.52),lit);
         col+=vec3(.95,.4,.15)*smoothstep(.25,.0,abs(ndl-.05))*.10;
-        float rip=ns(vP.xz*vec2(1.5,5.))*.5+ns(vP.xz*vec2(4.,14.))*.5;col*=.9+.2*rip;
-        col=mix(col,uFog,smoothstep(uFN,uFF,length(vP-uCam)));gl_FragColor=vec4(col,1.);}`});
+        float dist=length(vP-uCam);float rip=ns(vP.xz*vec2(1.5,5.))*.5+ns(vP.xz*vec2(4.,14.))*.5;col*=.9+.2*rip;
+        float gr=mix(texture2D(uSand,vP.xz*.28).r,texture2D(uSand,vP.xz*.045).r,smoothstep(25.,120.,dist));col*=.62+.7*gr;
+        col=mix(col,uFog,smoothstep(uFN,uFF,dist));gl_FragColor=vec4(col,1.);}`});
   const dg2=new T.PlaneGeometry(900,900,MOB?130:200,MOB?130:200);dg2.rotateX(-Math.PI/2);dg2.translate(0,0,-250);
   const dune=new T.Mesh(dg2,duneM);dune.frustumCulled=false;studioG.add(dune);
-  const dsT=ctex(cvs(256,512,(g,w,h)=>{g.fillStyle='#2f2b2b';g.fillRect(0,0,w,h);noiseDots(g,w,h,5000,'rgba(255,230,200,');g.fillStyle='#e9dfd0';g.fillRect(9,0,5,h);g.fillRect(242,0,5,h);g.fillStyle='#f0c98e';g.fillRect(125,40,6,190);g.fillRect(125,296,6,190)}),1,LEN/12.3);
-  const dsl=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshStandardMaterial({map:dsT,roughness:.92,metalness:0}));dsl.rotation.x=-Math.PI/2;dsl.receiveShadow=true;dsl.position.set(0,.01,LZ);studioG.add(dsl);
-  const DSUN=new T.Vector3(-.644,.492,-.585);
-  const dsun=sprite(0xffd9a0,1000,1000,.55);dsun.material.fog=false;dsun.position.copy(DSUN).multiplyScalar(880);studioG.add(dsun);
-  const dsun2=sprite(0xfff6e6,170,170,1);dsun2.material.fog=false;dsun2.position.copy(DSUN).multiplyScalar(880);studioG.add(dsun2);
+  const dsT=loadTex('assets/tex-asphalt_diff.jpg',PW/3,LEN/3),dsN=loadTex('assets/tex-asphalt_nor.jpg',PW/3,LEN/3);
+  const dsl=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshStandardMaterial({map:dsT,normalMap:dsN,color:0xb0aaa4,roughness:.9,metalness:0}));dsl.rotation.x=-Math.PI/2;dsl.receiveShadow=true;dsl.position.set(0,.01,LZ);studioG.add(dsl);
+  const dsMkT=ctex(cvs(256,512,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='#e9dfd0';g.fillRect(9,0,5,h);g.fillRect(242,0,5,h);g.fillStyle='#f0c98e';g.fillRect(125,40,6,190);g.fillRect(125,296,6,190)}),1,LEN/12.3);
+  const dsMk=new T.Mesh(new T.PlaneGeometry(PW,LEN),new T.MeshBasicMaterial({map:dsMkT,transparent:true,opacity:.85,depthWrite:false}));dsMk.rotation.x=-Math.PI/2;dsMk.position.set(0,.013,LZ);studioG.add(dsMk);
+  const DSUN=new T.Vector3(.782,.279,.558);
+  const skyH3=skyPhoto('hilly',0,1.0);studioG.add(skyH3);
   const MONO=[['01','CRÉATION 3D','#ff4f9a'],['02','MOTION & VIDÉO','#a98bff'],['03','WEB','#3fdcf5'],['04','COACHING','#ffab5c']];
   const monoMat=ty=>{const t=new T.CanvasTexture(cvs(256,1024,(g,w,h)=>{g.fillStyle='#18171c';g.fillRect(0,0,w,h);noiseDots(g,w,h,2500,'rgba(255,255,255,');
       g.fillStyle=MONO[ty][2];g.fillRect(w/2-1.5,96,3,h-420);
@@ -820,14 +831,14 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const stone=new T.MeshStandardMaterial({color:0x1b1a20,roughness:.7,metalness:.1});
   const shT=new T.CanvasTexture(cvs(64,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(20,8,12,.62)');gr.addColorStop(1,'rgba(20,8,12,0)');g.fillStyle=gr;g.fillRect(0,0,w,h);
     const gx=g.createLinearGradient(0,0,w,0);gx.addColorStop(0,'rgba(0,0,0,.9)');gx.addColorStop(.18,'rgba(0,0,0,0)');gx.addColorStop(.82,'rgba(0,0,0,0)');gx.addColorStop(1,'rgba(0,0,0,.9)');g.globalCompositeOperation='destination-out';g.fillStyle=gx;g.fillRect(0,0,w,h)}));
-  {const N=8,SP=80,z0=100,sg=new T.PlaneGeometry(6.5,46);sg.translate(0,23,0);sg.rotateX(Math.PI/2);
+  {const N=8,SP=80,z0=100,sg=new T.PlaneGeometry(6.5,80);sg.translate(0,40,0);sg.rotateX(Math.PI/2);
    const mats=[0,1,2,3].map(monoMat);
    for(let i=0;i<N;i++){const sd=i%2?1:-1,ty=i%4,g=new T.Group();g.position.set(sd*rnd(19,24),0,z0-i*SP);
      const m=mats[ty],bx=new T.Mesh(new T.BoxGeometry(1.8,26,6.5),[m,m,stone,stone,stone,stone]);bx.position.y=13;g.add(bx);
      const sh=new T.Mesh(sg,new T.MeshBasicMaterial({map:shT,transparent:true,depthWrite:false,side:T.DoubleSide}));sh.position.y=.05;sh.rotation.y=Math.atan2(-DSUN.x,-DSUN.z);g.add(sh);
      if(sd>0){bx.rotation.y=Math.PI;sh.rotation.y=Math.atan2(-DSUN.x,-DSUN.z)}
      studioG.add(g);studioW.push({o:g,k:1,lim:z0+SP*.5,span:N*SP})}}
-  const studioUp=(dz,t,dt)=>{duneM.uniforms.uOff.value+=dz;dsT.offset.y+=dz/12.3;wrap(studioW,dz);
+  const studioUp=(dz,t,dt)=>{duneM.uniforms.uOff.value+=dz;dsT.offset.y+=dz/3;dsN.offset.y=dsT.offset.y;dsMkT.offset.y+=dz/12.3;wrap(studioW,dz);
     const u=duneM.uniforms;u.uSun.value.set(P.sdx,P.sdy,P.sdz).normalize();u.uFog.value.copy(P.fogC);u.uFN.value=P.fogN;u.uFF.value=P.fogF;u.uCam.value.copy(cam.position)};
 
   // ---------- 05 · ORBITE : une piste suspendue dans l'espace, la planète en face ----------
@@ -1002,9 +1013,9 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const mkW=o=>{const w=Object.assign({},WD,o);for(const k in w)if(/C$/.test(k))w[k]=new T.Color(w[k]);return w};
   const WORLDS=[
     mkW({rn:0,fogC:0xe0607a,fogN:70,fogF:560,hemiD:.65,sun:3.4,fill:1.1,sunO:1,dust:.35}),
-    mkW({fogC:0x33445e,fogN:90,fogF:520,hC:0x6f93c0,gC:0x0b1520,hI:.7,kC:0xa8c4ff,kI:1,kx:-6,ky:10,kz:-6,cC:0x56b8ff,cI:.7,pC:0xff9a5a,pI:1.3,spot:1,tail:1,uC:0x2f7bff,uI:.9,uo:.3,stars:.55,bs:.42,bt:.72,zC:0x03071a,mC:0x0d2a46,hrC:0xa8665a,rC:0x08161f}),
+    mkW({fogC:0x8f8890,fogN:110,fogF:620,hC:0x8a98c4,gC:0x141a24,hI:.55,kC:0xffc296,kI:1.5,kx:6,ky:1.7,kz:7.9,cC:0x7aa0ff,cI:.6,pC:0xff9a5a,pI:.5,spot:1,tail:1,uC:0x2f7bff,uI:.7,uo:.25,stars:0,bs:.34,bt:.8,zC:0x03071a,mC:0x0d2a46,hrC:0xa8665a,rC:0x2b2f3a}),
     mkW({fogC:0x0a0d1c,fogN:40,fogF:330,hI:.9,kI:.9,cI:1.1,pI:1,spot:1,tail:1,uI:1.8,uo:.35,stars:.75,moon:1,bs:.62,bt:.5,n:1}),
-    mkW({fogC:0xe8cfa8,fogN:90,fogF:520,sC:0xffe2c0,sun:1.9,sdx:-.644,sdy:.492,sdz:-.585,hC:0xcfe3ff,gC:0xb08a60,hI:.45,kC:0xffffff,kI:.3,kx:6,ky:8,kz:6,cC:0x6fb0ff,cI:.5,dust:.3,bs:.24,bt:.86,zC:0x5d8db3,mC:0xdac5a2,hrC:0xf2d9b6,lt:.7}),
+    mkW({fogC:0xbdb8a6,fogN:110,fogF:640,sC:0xfff0d8,sun:2.7,sdx:.782,sdy:.279,sdz:.558,hC:0xbcd4e6,gC:0xb9a07a,hI:.55,kC:0xffffff,kI:.25,kx:-6,ky:8,kz:-6,cC:0x6fb0ff,cI:.4,dust:.25,bs:.22,bt:.86,zC:0x5d8db3,mC:0xdac5a2,hrC:0xf2d9b6,lt:.6}),
     mkW({fogC:0x02030a,fogN:150,fogF:1100,hC:0x6a8cff,gC:0x05060c,hI:.4,kC:0xfff1dc,kI:2,kx:10,ky:6,kz:-12,cC:0x3a7cff,cI:1.3,pC:0xff9a50,pI:.7,spot:1,tail:1,uC:0x6aa0ff,uI:1.3,uo:.3,stars:1,bs:.55,bt:.6,zC:0x000003,mC:0x020718,hrC:0x0b1c4a,nC:0x6a2a9a,na:.55})
   ];
   const WN=[['Golden hour','CHAPITRE 01 · LE DÉPART'],['Drive-in','CHAPITRE 02 · TES CRÉATIONS'],['Night drive','CHAPITRE 03 · LE PROFIL'],['Desert','CHAPITRE 04 · 3D, MOTION, WEB, COACHING'],['Orbit','CHAPITRE 05 · CONTACT']];
@@ -1051,7 +1062,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     else{mixW(WORLDS[wTo],WORLDS[wTo],0);chap.style.opacity=0}
     const warm=fc<4,night=vis===2;   // les 4 premières images montrent tout pour précompiler les shaders (sous le préchargeur)
     dayG.visible=warm||vis===0;arenaG.visible=warm||vis===1;nightG.visible=warm||night;studioG.visible=warm||vis===3;orbitG.visible=warm||vis===4;
-    skyM.visible=vis===0||night;skyB.visible=!skyM.visible;
+    skyM.visible=vis===0||night;skyB.visible=vis===4;
     ridges.forEach(m=>{m.visible=vis<=2;m.material.color.copy(m.userData.c).lerp(P.rC,P.rn)});
     S.fog.color.copy(P.fogC);S.fog.near=P.fogN;S.fog.far=P.fogF;
     skyMat.uniforms.n.value=P.n;
