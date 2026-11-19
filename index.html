@@ -359,7 +359,7 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
     <span class="label">Studio 3D &amp; motion · Esport</span>
     <h1 data-split>OTAA<span class="rl">RL</span></h1>
     <div class="stripe"><i></i><i></i></div>
-    <p><b>L'image de votre structure esport, en 3D.</b> Annonces de roster, affiches, trailers et sites web pour les équipes et les événements. Ils m'ont fait confiance : Karmine Corp, GroundZero, Lakitue, Voltage.</p>
+    <p><b>L'image de votre structure esport, en 3D.</b> Annonces de roster, affiches, trailers et sites web pour les équipes et les événements. Ils m'ont fait confiance : GroundZero, Lakitue, Voltage, DayLight.</p>
     <div class="btns">
       <a class="btn o" href="#works"><span>Voir les projets</span></a>
       <a class="btn" href="#contact"><span>Lancer un projet</span></a>
@@ -390,7 +390,7 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
       <li>Web<i style="--v:74%"></i></li>
       <li>Coaching<i style="--v:68%"></i></li>
     </ul>
-    <div class="stats"><div><b>200+</b><span>Heures de coaching</span></div><div><b>7+</b><span>Projets</span></div><div><b>6</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
+    <div class="stats"><div><b>200+</b><span>Heures de coaching</span></div><div><b>7+</b><span>Projets</span></div><div><b>5</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
   </div>
 </section>
 
@@ -445,8 +445,8 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
 const SITE = {
   email: "Otaapro@gmail.com",
   works: [
-    {t:"3 Titans to defeat them all", c:"Karmine Corp", k:"Affiche 3D · 2024", img:"assets/kc-titan.jpg", u:"https://x.com/OtaaRL/status/1752808730335273433"},
-    {t:"Scène 3D", c:"Karmine Corp", k:"Scène 3D · 2022", img:"assets/kc-scene.jpg", u:"https://x.com/OtaaRL/status/1593662761539543040", wide:true},
+    {t:"3 Titans to defeat them all", c:"Fan art", k:"Affiche 3D perso · 2024", img:"assets/kc-titan.jpg", u:"https://x.com/OtaaRL/status/1752808730335273433"},
+    {t:"Scène 3D", c:"Fan art", k:"Scène 3D perso · 2022", img:"assets/kc-scene.jpg", u:"https://x.com/OtaaRL/status/1593662761539543040", wide:true},
     {t:"Women's Showmatch", c:"GroundZero", k:"Affiche 3D · 2025", img:"assets/wrl.jpg", u:"https://x.com/GrZero0/status/1879234527689670820"},
     {t:"Lakiche Cup — Saison 6", c:"Lakitue", k:"Annonce vidéo · 2025", img:"assets/lakiche-poster.jpg", vid:"assets/videos/lakiche.mp4", u:"https://x.com/LakitueRL/status/1902419806076227617", wide:true},
     {t:"Roster 2024", c:"Pingou Esport", k:"Vidéo 3D · 2024", img:"assets/pingou-poster.jpg", vid:"assets/videos/pingou.mp4", u:"https://x.com/OtaaRL/status/1770508974325911785"},
@@ -682,8 +682,9 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     const f=Math.min(K.length-1-1e-6,Math.max(0,prog*(K.length-1))),i=Math.floor(f),u0=f-i;
     const uu=Math.min(1,Math.max(0,(u0-.04)/.92)),ue=uu<.5?4*uu*uu*uu:1-Math.pow(-2*uu+2,3)/2,arc=Math.sin(ue*Math.PI);
     const A=K[i],B=K[i+1],lp=k=>A[k]+(B[k]-A[k])*ue;
+    const ob=uu<1?Math.sin(uu*Math.PI)*Math.pow(uu,3)*.09:0;
     const mob=W<900,dk=mob?1.45:Math.max(1,1.55/cam.aspect);
-    const th=lp('th')+mm.x*.07+Math.sin(t*.11)*.05+(1-introE)*.9,rad=(lp('r')+arc*.9)*dk*(30/Math.max(20,lp('fov'))*.55+.45)*(.62+.38*introE),cy=Math.max(.32,lp('y')+arc*.5)*dk;
+    const th=lp('th')+(B.th-A.th)*ob+mm.x*.07+Math.sin(t*.11)*.05+(1-introE)*.9,rad=(lp('r')+arc*.9)*dk*(30/Math.max(20,lp('fov'))*.55+.45)*(.62+.38*introE),cy=Math.max(.32,lp('y')+arc*.5)*dk;
     const hx=0,hy=0,sh=boostK*.012;
     cam.position.set(Math.sin(th)*rad+hx+(Math.random()-.5)*sh,cy-mm.y*.15+hy+(Math.random()-.5)*sh,Math.cos(th)*rad);
     cam.lookAt(0,lp('ly'),0);
@@ -708,8 +709,8 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     {const a=dg.attributes.position.array;for(let k=0;k<DN;k++){const o=k*3;a[o+1]+=dt*.05+Math.sin(t*.3+k)*dt*.02;a[o]+=Math.sin(t*.2+k*1.3)*dt*.03;if(a[o+1]>6)a[o+1]=.2}dg.attributes.position.needsUpdate=true}
     {const A1=LAY[i],B1=LAY[Math.min(LAY.length-1,i+1)];
      for(let k=0;k<NB;k++){const e0=Math.min(1,Math.max(0,ue*1.35-k*.04)),e=e0*e0*(3-2*e0),b=bars[k];
-       b.position.lerpVectors(A1[k].p,B1[k].p,e);b.quaternion.slerpQuaternions(A1[k].q,B1[k].q,e);b.scale.z=(A1[k].l+(B1[k].l-A1[k].l)*e)*Math.min(1,Math.max(.001,(it-2.4)*1.2))}}
-    bars.forEach((b,k)=>{const ch=Math.max(0,Math.sin(t*9-k*.8));b.material.color.setScalar(power*(4.2+arc*7*ch*ch)+boostK*3)});
+       b.position.lerpVectors(A1[k].p,B1[k].p,e);b.quaternion.slerpQuaternions(A1[k].q,B1[k].q,e);b.scale.z=(A1[k].l+(B1[k].l-A1[k].l)*e)*(1-.65*Math.sin(e*Math.PI))*Math.min(1,Math.max(.001,(it-2.4)*1.2))}}
+    bars.forEach((b,k)=>{const ch=Math.max(0,Math.sin(t*9-k*.8));b.material.color.setScalar(power*(4.2+arc*7*ch*ch+Math.max(0,1-ripT*2.2)*7)+boostK*3)});
     // onde au sol à l'arrivée sur chaque section
     {const sec=Math.round(prog*4);if(sec!==lastSec&&Math.abs(prog*4-sec)<.08){lastSec=sec;ripT=0}ripT+=dt;
      const rq=Math.min(1,ripT/1.4),re=1-Math.pow(1-rq,3);rip.scale.setScalar(4.1+re*11);rip.material.opacity=(1-rq)*.9*power;rip.material.color.copy(acc).multiplyScalar(3)}
