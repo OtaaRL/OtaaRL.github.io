@@ -888,13 +888,13 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     engG.gain.setTargetAtTime(st.boost*.2,t,.08);eng.frequency.setTargetAtTime(48+st.boost*95,t,.25);engF.frequency.setTargetAtTime(240+st.boost*900,t,.2)}
   function set(v){on=v;btn.classList.toggle('on',v);btn.setAttribute('aria-pressed',v);btn.setAttribute('aria-label',v?'Couper le son':'Activer le son');
     try{localStorage.setItem('otaa-snd',v?'1':'0')}catch(e){}
-    if(v){const first=!ac;if(!ac)build();ac.resume();if(first&&window.__replayIntro)window.__replayIntro();master.gain.setTargetAtTime(.3,ac.currentTime,.4);if(!(window.__snd&&window.__snd.rev<1))powerOn()}else if(ac)master.gain.setTargetAtTime(0,ac.currentTime,.15)}
+    if(v){const first=!ac;if(!ac)build();ac.resume();if(first&&window.__replayIntro)window.__replayIntro();master.gain.setTargetAtTime(.14,ac.currentTime,.4);if(!(window.__snd&&window.__snd.rev<1))powerOn()}else if(ac)master.gain.setTargetAtTime(0,ac.currentTime,.15)}
   btn.addEventListener('click',()=>set(!on));
   // le navigateur exige un geste : si le son était activé la dernière fois, on le relance au premier clic
   let want=false;try{want=localStorage.getItem('otaa-snd')==='1'}catch(e){}
   if(want){btn.classList.add('on');const go=e=>{if(e.target.closest('#snd'))return;removeEventListener('pointerdown',go);set(true)};addEventListener('pointerdown',go)}
   document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('a,button');if(a&&a!==tick.last){tick.last=a;click(3200,.025,.02)}if(!a)tick.last=null});
-  document.addEventListener('visibilitychange',()=>{if(ac&&on)master.gain.setTargetAtTime(document.hidden?0:.3,ac.currentTime,.2)});
+  document.addEventListener('visibilitychange',()=>{if(ac&&on)master.gain.setTargetAtTime(document.hidden?0:.14,ac.currentTime,.2)});
 })();
 </script>
 </body>
