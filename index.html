@@ -547,22 +547,40 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const dg=new T.BufferGeometry();dg.setAttribute('position',new T.BufferAttribute(dp,3));
   S.add(new T.Points(dg,new T.PointsMaterial({color:0xfff2e0,size:1.4,sizeAttenuation:false,transparent:true,opacity:.18,blending:T.AdditiveBlending,depthWrite:false})));
 
+  const streak=new T.Mesh(new T.PlaneGeometry(16,46),new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:{uT:{value:0},uK:{value:0}},
+    vertexShader:'varying vec2 q;void main(){q=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'varying vec2 q;uniform float uT,uK;float h(float x){return fract(sin(x*91.37)*4375.85);}void main(){float ln=floor(q.x*4.);float r=h(ln);float z=q.y+uT*(26.+r*34.);float d=step(.78,fract(z*.045+r))*step(.45,h(ln+7.));float a=d*uK*smoothstep(1.9,2.7,abs(q.x))*(1.-smoothstep(5.,8.,abs(q.x)))*(1.-smoothstep(12.,23.,abs(q.y)));gl_FragColor=vec4(vec3(1.,.5,.2)*a*1.4,1.);}'}));
+  streak.rotation.x=-Math.PI/2;streak.position.y=.016;S.add(streak);
+
   // ---------- la Fennec : peinture vernie, vitres, roues ----------
-  // livrée : camo numérique OtaaRL en diagonale (arrière / bas), filet orange, logo sur les portières
-  const logoT=(()=>{const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');g.clearRect(0,0,1024,256);
-    g.font='800 150px "Barlow Condensed",Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';
-    try{g.letterSpacing='18px'}catch(e){}g.fillStyle='#fff';g.fillText('OTAA',430,132);g.fillStyle='#ff7a2a';g.fillText('RL',765,132);
+  // livrée « dazzle » façon voiture de test : bandes noir / blanc en tous sens, éclats orange, logo sur cartouche noir
+  const logoT=(()=>{const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');
+    g.fillStyle='#08080a';g.fillRect(40,46,944,164);g.fillStyle='#ff6a1a';g.fillRect(40,46,16,164);
+    g.font='800 132px "Barlow Condensed",Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';try{g.letterSpacing='16px'}catch(e){}
+    g.fillStyle='#fff';g.fillText('OTAA',450,132);g.fillStyle='#ff6a1a';g.fillText('RL',760,132);
     const t=new T.CanvasTexture(c);t.anisotropy=8;return t})();
-  function livery(mat){mat.onBeforeCompile=sh=>{sh.uniforms.uLogo={value:logoT};
+  const REV={value:0};
+  const HASH='vec3 h33(vec3 p){p=fract(p*vec3(.1031,.103,.0973));p+=dot(p,p.yxz+33.33);return fract((p.xxy+p.yxx)*p.zyx);}\n';
+  const DAZZLE=`{vec3 p=vW*vec3(.95,1.15,.95);vec3 ip=floor(p),fp=fract(p);float md=9.;vec3 id=vec3(0.);
+    for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++)for(int z=-1;z<=1;z++){vec3 o=vec3(float(x),float(y),float(z));vec3 rr=o+h33(ip+o)-fp;float d=dot(rr,rr);if(d<md){md=d;id=ip+o;}}
+    vec3 rn=h33(id*1.7+3.1);float ang=rn.x*6.2831;vec3 dir=normalize(vec3(cos(ang),rn.y*1.6-.8,sin(ang)));
+    float band=step(.5,fract(dot(vW,dir)*mix(2.6,6.5,rn.z)));
+    vec3 cA=vec3(.006,.006,.008),cB=vec3(.78,.78,.8);vec3 dz=mix(cA,cB,band);
+    if(rn.y>.86)dz=mix(vec3(1.,.16,.015),cA,band);if(rn.z<.12)dz=cA;
+    float pm=smoothstep(.04,.14,diffuseColor.b-max(diffuseColor.r,diffuseColor.g));
+    diffuseColor.rgb=mix(diffuseColor.rgb,dz,pm);
+    float side=smoothstep(.6,.85,abs(vWN.x));vec2 lu=vec2((vW.x>0.?-vW.z:vW.z)/2.8+.5,(vW.y-.48)/.52);
+    if(lu.x>0.&&lu.x<1.&&lu.y>0.&&lu.y<1.){vec4 lg=texture2D(uLogo,lu);diffuseColor.rgb=mix(diffuseColor.rgb,lg.rgb,lg.a*side*pm);}}`;
+  const REVEAL=`{float zr=mix(-3.3,3.3,uRev),dv=vW.z-zr;
+    if(dv>0.){vec3 g=.5-abs(fract(vW*5.)-.5);float l=min(min(g.x,g.y),g.z);float ln=1.-smoothstep(.0,.035,l);if(ln<.08)discard;
+      gl_FragColor=vec4(vec3(1.,.32,.06)*2.2*ln*(.4+.6*exp(-dv*.6)),1.);}
+    gl_FragColor.rgb+=vec3(1.,.85,.7)*exp(-pow(dv*16.,2.))*3.5*step(uRev,.999);}`;
+  function carShader(mat,paint){mat.onBeforeCompile=sh=>{sh.uniforms.uLogo={value:logoT};sh.uniforms.uRev=REV;
     sh.vertexShader='varying vec3 vW;varying vec3 vWN;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW=(modelMatrix*vec4(transformed,1.)).xyz;vWN=normalize(mat3(modelMatrix)*objectNormal);');
-    sh.fragmentShader='varying vec3 vW;varying vec3 vWN;uniform sampler2D uLogo;\nfloat ch(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}\nfloat cn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(ch(i),ch(i+vec3(1,0,0)),f.x),mix(ch(i+vec3(0,1,0)),ch(i+vec3(1,1,0)),f.x),f.y),mix(mix(ch(i+vec3(0,0,1)),ch(i+vec3(1,0,1)),f.x),mix(ch(i+vec3(0,1,1)),ch(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'+
-      sh.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
-        {vec3 q=floor(vW*7.)/7.;float a=cn(q*1.25),b=cn(q*3.3+7.);
-         vec3 camo=a>.56?vec3(.055,.06,.075):vec3(.012,.014,.02);if(a<.3)camo=vec3(.15,.16,.18);if(b>.78)camo=vec3(1.,.26,.05);
-         float v=vW.z*.42-vW.y*.5+.36;float reg=step(0.,v);float edge=1.-smoothstep(.0,.03,abs(v));
-         float pm=smoothstep(.04,.14,diffuseColor.b-max(diffuseColor.r,diffuseColor.g));reg*=pm;edge*=pm;diffuseColor.rgb=mix(diffuseColor.rgb,camo,reg);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(1.,.3,.06),edge*step(.3,vW.y));
-         float side=smoothstep(.6,.85,abs(vWN.x));vec2 lu=vec2((vW.x>0.?-vW.z:vW.z)/3.+.5,(vW.y-.5)/.62);
-         if(lu.x>0.&&lu.x<1.&&lu.y>0.&&lu.y<1.){vec4 lg=texture2D(uLogo,lu);diffuseColor.rgb=mix(diffuseColor.rgb,lg.rgb,lg.a*side*.92*pm);}}`)}}
+    let fs='varying vec3 vW;varying vec3 vWN;uniform sampler2D uLogo;uniform float uRev;\n'+HASH+sh.fragmentShader;
+    if(paint)fs=fs.replace('#include <map_fragment>','#include <map_fragment>\n'+DAZZLE);
+    sh.fragmentShader=fs.replace('#include <dithering_fragment>','#include <dithering_fragment>\n'+REVEAL)};mat.needsUpdate=true}
+  let carOK=false;
   const car=new T.Group();S.add(car);const carRot=new T.Group();carRot.rotation.y=Math.PI;car.add(carRot);const wheels=[],paints=[],heads=[];
   if(T.GLTFLoader)new T.GLTFLoader().load('assets/car.glb',g=>{
     const m=g.scene;m.updateMatrixWorld(true);let box=new T.Box3().setFromObject(m),sz=box.getSize(new T.Vector3());
@@ -571,10 +589,11 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     m.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
       const one=!Array.isArray(o.material),arr=one?[o.material]:o.material;
       const out=arr.map(mt=>{let n=mt;
-        if(/Paint|Body/i.test(mt.name)){n=new T.MeshPhysicalMaterial({name:mt.name,color:mt.color,map:mt.map,normalMap:mt.normalMap,roughness:.3,metalness:.5,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:.75});livery(n);paints.push(n)}
+        if(/Paint|Body/i.test(mt.name)){n=new T.MeshPhysicalMaterial({name:mt.name,color:mt.color,map:mt.map,normalMap:mt.normalMap,roughness:.3,metalness:.5,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:.75});paints.push(n)}
         else if(/Window|Glass/i.test(mt.name)){mt.roughness=.03;mt.metalness=.9;mt.color=new T.Color(0x07080b);mt.envMapIntensity=.7}
         else if(mt.isMeshStandardMaterial){mt.envMapIntensity=.6}
         if(n.emissiveMap){n.emissive=new T.Color(1,1,1);n.emissiveIntensity=1.6;heads.push(n)}
+        if(n.isMeshStandardMaterial)carShader(n,paints.includes(n));
         return n});
       o.material=one?out[0]:out});
     m.updateMatrixWorld(true);
@@ -582,7 +601,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     ws.forEach(w=>{const b=new T.Box3().setFromObject(w),ctr=b.getCenter(new T.Vector3()),s2=b.getSize(new T.Vector3());
       const pv=new T.Object3D();w.parent.add(pv);pv.position.copy(w.parent.worldToLocal(ctr.clone()));pv.updateMatrixWorld(true);pv.attach(w);
       const axW=s2.x<s2.z?new T.Vector3(1,0,0):new T.Vector3(0,0,1);wheels.push({pv,axL:axW.transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:s2.y/2})});
-    R.shadowMap.needsUpdate=true;window.__carReady=true},undefined,()=>{window.__carReady=true});
+    R.shadowMap.needsUpdate=true;carOK=true;window.__carReady=true},undefined,()=>{window.__carReady=true;REV.value=1});
   else window.__carReady=true;
 
   // ---------- rendu : HDR -> bloom -> tone mapping ACES + étalonnage ----------
@@ -628,13 +647,19 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   let W=0,H=0;function size(){W=innerWidth;H=innerHeight;R.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();
     if(composer){composer.setPixelRatio(DPR);composer.setSize(W,H);if(bloom)bloom.setSize(Math.round(W*DPR*.5),Math.round(H*DPR*.5))}}
   size();addEventListener('resize',size);
-  const acc=new T.Color(),tmpC=new T.Color();let fc=0,fpsAcc=0,fpsN=0;
+  const acc=new T.Color(),tmpC=new T.Color();let fc=0,fpsAcc=0,fpsN=0,introT=-1,power=0;
   const clock=new T.Clock();
   (function loop(){requestAnimationFrame(loop);
     const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;fc++;
     if(fc>120){fpsAcc+=dt;if(++fpsN===50){const av=fpsAcc/fpsN;fpsAcc=0;fpsN=0;
       if(av>.027&&DPR>.8){DPR=Math.max(.8,DPR-.2);R.setPixelRatio(DPR);size()}else if(av<.0185&&DPR<DPRMAX-.01){DPR=Math.min(DPRMAX,DPR+.1);R.setPixelRatio(DPR);size()}}}
     boostK+=(((hold||keyB)?1:0)-boostK)*Math.min(1,dt*((hold||keyB)?6:3));
+    // ouverture : scan fil de fer -> la voiture apparaît -> les lumières s'allument une à une
+    if(introT<0&&(carOK||REV.value>=1)&&document.body.classList.contains('ready'))introT=0;
+    if(introT>=0)introT+=dt;const it=introT<0?0:introT;
+    if(carOK){const q=Math.min(1,Math.max(0,(it-.5)/2.4));REV.value=q*q*(3-2*q)}
+    const pw=it<2.6?0:it<3.3?(Math.sin(it*70)>.2?1:.12):1;power+=(pw-power)*Math.min(1,dt*18);
+    const flash=it>2.6?Math.max(0,1-(it-2.6)*1.6):0,introE=1-Math.pow(1-Math.min(1,it/4.2),3);
     vel+=((scrollY-lastY)/Math.max(dt,.001)-vel)*Math.min(1,dt*6);lastY=scrollY;
     {const sd=smoothDamp(prog,tProg,progV,.7,dt);prog=sd[0];progV=sd[1]}
     // chaque section tient son plan, puis la caméra part en mouvement de grue (ease in-out, élévation et recul à mi-course)
@@ -642,7 +667,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     const uu=Math.min(1,Math.max(0,(u0-.1)/.8)),ue=uu<.5?4*uu*uu*uu:1-Math.pow(-2*uu+2,3)/2,arc=Math.sin(ue*Math.PI);
     const A=K[i],B=K[i+1],lp=k=>A[k]+(B[k]-A[k])*ue;
     const mob=W<900,dk=mob?1.45:Math.max(1,1.55/cam.aspect);
-    const th=lp('th')+mm.x*.07+Math.sin(t*.13)*.025,rad=(lp('r')+arc*2.2)*dk*(30/Math.max(20,lp('fov'))*.55+.45),cy=Math.max(.32,lp('y')+arc*1.6)*dk;
+    const th=lp('th')+mm.x*.07+Math.sin(t*.13)*.025+(1-introE)*.9,rad=(lp('r')+arc*2.2)*dk*(30/Math.max(20,lp('fov'))*.55+.45)*(.62+.38*introE),cy=Math.max(.32,lp('y')+arc*1.6)*dk;
     const hx=Math.sin(t*.9)*.006+Math.sin(t*2.3)*.003,hy=Math.cos(t*1.1)*.005,sh=boostK*.012;
     cam.position.set(Math.sin(th)*rad+hx+(Math.random()-.5)*sh,cy-mm.y*.15+hy+(Math.random()-.5)*sh,Math.cos(th)*rad);
     cam.lookAt(0,lp('ly'),0);
@@ -651,8 +676,14 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     cam.fov=(mob?lp('fov')+10:lp('fov'))+arc*4+boostK*2.5;cam.updateProjectionMatrix();
     // couleur d'accent selon la section
     {const g=prog*(ACC.length-1),a=Math.min(ACC.length-2,Math.floor(g)),w=g-a,e=w*w*(3-2*w);acc.copy(ACC[a]).lerp(ACC[a+1],e)}
-    [rimA,rimB].forEach(o=>{if(o.l){o.l.color.copy(acc);o.l.intensity=o.base*(1+boostK*1.4)}o.m.material.color.copy(acc).multiplyScalar(2.2+boostK*2)});
-    ringM.color.copy(acc).multiplyScalar(1.6+boostK*3);backM.uniforms.acc.value.copy(acc);
+    const pulse=power*(1+boostK*1.4+arc*1.1+flash*1.5);
+    [rimA,rimB].forEach(o=>{if(o.l){o.l.color.copy(acc);o.l.intensity=o.base*pulse}o.m.material.color.copy(acc).multiplyScalar((2.2+boostK*2+arc)*power+.02)});
+    [top,kick].forEach(o=>{if(o.l)o.l.intensity=o.base*power;o.m.material.color.setScalar(2.2*power+.01)});
+    sun.intensity=.9*power;beam.visible=power>.05;beam.material.opacity=power;
+    ring.scale.setScalar(.001+.999*(1-Math.pow(1-Math.min(1,it/1.6),3)));dial.material.opacity=.75*Math.min(1,Math.max(0,(it-.8)/1.5));
+    streak.material.uniforms.uT.value=t;streak.material.uniforms.uK.value=Math.min(1,boostK+arc*.8);
+    if(bloom)bloom.strength=.3+flash*1.1+boostK*.25;
+    ringM.color.copy(acc).multiplyScalar(1.6+boostK*3+flash*4);backM.uniforms.acc.value.copy(acc);
     dial.rotation.z+=dt*.04;
     // voiture : respiration au ralenti, cabrage au boost, roues qui tournent avec le scroll
     car.position.y=Math.sin(t*1.7)*.004+boostK*.02;car.rotation.x=-boostK*.018;car.rotation.z=Math.sin(t*1.1)*.002;
