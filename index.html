@@ -490,10 +490,10 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   if(!window.THREE)return;
   const T=THREE,cv=$('#gl'),MOB=matchMedia('(max-width:900px)').matches;
   const R=new T.WebGLRenderer({canvas:cv,antialias:false,powerPreference:'high-performance'});
-  let DPR=Math.min(devicePixelRatio,MOB?1.2:1.35);const DPRMAX=DPR;R.setPixelRatio(DPR);
+  let DPR=Math.min(devicePixelRatio,MOB?1.5:2);const DPRMAX=DPR;R.setPixelRatio(DPR);
   R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;R.shadowMap.autoUpdate=false;
   const L=h=>new T.Color(h).convertSRGBToLinear();
-  const S=new T.Scene(),BG=L(0x0a0b10);
+  const S=new T.Scene(),BG=L(0x0c0e13);
   const cam=new T.PerspectiveCamera(28,1,.1,400);
   const rnd=(a,b)=>a+Math.random()*(b-a);
   function radial(stops){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');const gr=g.createRadialGradient(128,128,0,128,128,128);stops.forEach(([o,col])=>gr.addColorStop(o,col));g.fillStyle=gr;g.fillRect(0,0,256,256);return new T.CanvasTexture(c)}
@@ -505,11 +505,11 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- cyclorama sombre + halo coloré à l'horizon ----------
   const backM=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{acc:{value:L(0xff7a2a)},base:{value:BG.clone()}},
     vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader:'varying vec3 p;uniform vec3 acc,base;void main(){vec3 d=normalize(p);float band=exp(-pow((d.y-.03)*5.,2.));vec3 c=base*(.45+.7*band)+acc*band*.012;c*=1.-smoothstep(.15,.8,d.y)*.75;gl_FragColor=vec4(c,1.);}'});
+    fragmentShader:'varying vec3 p;uniform vec3 acc,base;void main(){vec3 d=normalize(p);float band=exp(-pow((d.y-.03)*5.,2.));vec3 c=base*vec3(.92,.97,1.08)*(.5+.9*band)+acc*band*.004;c*=1.-smoothstep(.15,.8,d.y)*.75;gl_FragColor=vec4(c,1.);}'});
   S.add(new T.Mesh(new T.SphereGeometry(150,48,24),backM));
 
   // ---------- sol : miroir sombre qui s'éteint en s'éloignant ----------
-  let mirG=null;if(T.Reflector&&!MOB){const mir=mirG=new T.Reflector(new T.CircleGeometry(30,64),{textureWidth:Math.round(innerWidth*DPR*.42),textureHeight:Math.round(innerHeight*DPR*.42),color:0x5a5a5a,clipBias:.002});mir.rotation.x=-Math.PI/2;S.add(mir)}
+  let mirG=null;if(T.Reflector&&!MOB){const mir=mirG=new T.Reflector(new T.CircleGeometry(30,64),{textureWidth:Math.round(innerWidth*Math.min(DPR,1.5)*.6),textureHeight:Math.round(innerHeight*Math.min(DPR,1.5)*.6),color:0x5a5a5a,clipBias:.002});mir.rotation.x=-Math.PI/2;S.add(mir)}
   const fade=new T.Mesh(new T.CircleGeometry(80,96),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{base:{value:BG.clone()}},
     vertexShader:'varying vec2 q;void main(){q=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:'varying vec2 q;uniform vec3 base;float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}void main(){float r=length(q);float a=mix(.7,1.,smoothstep(3.,18.,r));a=clamp(a+(h(floor(q*60.))-.5)*.04,0.,1.);gl_FragColor=vec4(base*.9,a);}'}));
@@ -535,7 +535,9 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const rimA=softbox(.3,5.2,new T.Vector3(-5.6,2.7,-3.6),10,L(0xff7a2a));
   const rimB=softbox(.3,5.2,new T.Vector3(5.6,2.7,3.6),10,L(0xff7a2a));
   const kick=softbox(6,.6,new T.Vector3(0,3.2,10),2.2,new T.Color(.82,.88,1));
-  [top,rimA,rimB,kick].forEach(o=>o.m.visible=false);
+  const key=softbox(5,3,new T.Vector3(-6,3.6,-5),3.2,new T.Color(1,.98,.95));
+  [top,rimA,rimB,kick,key].forEach(o=>o.m.visible=false);
+  const sweep=new T.Mesh(new T.BoxGeometry(9,.07,.07),new T.MeshBasicMaterial({color:new T.Color(9,9,9)}));sweep.visible=false;S.add(sweep);
   const NB=9,bars=[],barM=new T.MeshBasicMaterial({color:new T.Color(5,5,5.3)}),bg_=new T.BoxGeometry(.06,.06,1);
   for(let k=0;k<NB;k++){const b=new T.Mesh(bg_,new T.MeshBasicMaterial({color:new T.Color(5,5,5.3)}));S.add(b);bars.push(b)}
   const rip=new T.Mesh(new T.RingGeometry(1,1.012,160),new T.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:T.AdditiveBlending}));rip.rotation.x=-Math.PI/2;rip.position.y=.02;S.add(rip);let ripT=9,lastSec=0,yawS=0,rollC=0;
@@ -546,10 +548,10 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     k=>{const a=k/NB*Math.PI*2;return{p:[Math.cos(a)*5.6,.04,Math.sin(a)*5.6],r:[0,Math.PI/2-a,0],l:3.2}},
     k=>({p:[0,.5+k*.55,7.8],r:[0,Math.PI/2,0],l:10})
   ].map(f=>Array.from({length:NB},(_,k)=>{const o=f(k);return{p:new T.Vector3(...o.p),q:new T.Quaternion().setFromEuler(new T.Euler(...o.r)),l:o.l}}));
-  const cubeRT=new T.WebGLCubeRenderTarget(128,{type:T.HalfFloatType,generateMipmaps:true,minFilter:T.LinearMipmapLinearFilter});
+  const cubeRT=new T.WebGLCubeRenderTarget(MOB?128:256,{type:T.HalfFloatType,generateMipmaps:true,minFilter:T.LinearMipmapLinearFilter});
   const cubeCam=new T.CubeCamera(.1,120,cubeRT);cubeCam.position.set(0,1,0);S.add(cubeCam);let envSet=false;
   const sun=new T.DirectionalLight(0xffffff,.9);sun.position.set(1.2,10,1.8);sun.castShadow=true;
-  sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:2,far:20});sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;S.add(sun);
+  sun.shadow.mapSize.set(MOB?1024:2048,MOB?1024:2048);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:2,far:20});sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;S.add(sun);
   S.add(new T.HemisphereLight(0xbfc8ff,0x050508,.12));
   // faisceau sous la softbox + poussières
   const beam=new T.Mesh(new T.CylinderGeometry(3.4,4.6,6.4,48,1,true),new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
@@ -620,20 +622,21 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- rendu : HDR -> bloom -> tone mapping ACES + étalonnage ----------
   let composer=null,bloom=null,fx=null;
   if(T.EffectComposer&&T.UnrealBloomPass&&T.ShaderPass){
-    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat,type:T.HalfFloatType});rtg.samples=MOB?0:2}catch(e){rtg=new T.WebGLRenderTarget(8,8,{type:T.HalfFloatType})}
+    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat,type:T.HalfFloatType});rtg.samples=MOB?2:4}catch(e){rtg=new T.WebGLRenderTarget(8,8,{type:T.HalfFloatType})}
     composer=new T.EffectComposer(R,rtg);composer.addPass(new T.RenderPass(S,cam));
     bloom=new T.UnrealBloomPass(new T.Vector2(256,256),.3,.5,1.05);composer.addPass(bloom);
-    fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0},ex:{value:.92},amt:{value:0}},
+    fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0},ex:{value:1.02},amt:{value:0},px:{value:new T.Vector2(1/1920,1/1080)}},
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader:`uniform sampler2D tDiffuse;uniform float time,ex,amt;varying vec2 vUv;
+      fragmentShader:`uniform sampler2D tDiffuse;uniform float time,ex,amt;uniform vec2 px;varying vec2 vUv;
         float hs(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
         vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}
         void main(){vec2 d=vUv-.5;float r=length(d);float ca=(.0008+amt*.004)*r;
           vec3 c=vec3(0.);for(int k=0;k<4;k++){vec2 o=-d*amt*.012*float(k);c+=vec3(texture2D(tDiffuse,vUv+o+d*ca).r,texture2D(tDiffuse,vUv+o).g,texture2D(tDiffuse,vUv+o-d*ca).b);}c*=.25;
-          c=aces(c*ex);c=pow(c,vec3(1./2.2));
-          float l=dot(c,vec3(.299,.587,.114));c=mix(c*vec3(.95,.98,1.05),c*vec3(1.04,1.,.95),smoothstep(.2,.8,l));
+          vec3 nb=(texture2D(tDiffuse,vUv+vec2(px.x,0.)).rgb+texture2D(tDiffuse,vUv-vec2(px.x,0.)).rgb+texture2D(tDiffuse,vUv+vec2(0.,px.y)).rgb+texture2D(tDiffuse,vUv-vec2(0.,px.y)).rgb)*.25;c+=(c-nb)*.45*(1.-min(amt,1.));
+          c=aces(c*ex);c=pow(c,vec3(1./2.2));c=mix(c,c*c*(3.-2.*c),.22);
+          float l=dot(c,vec3(.299,.587,.114));c=mix(c*vec3(.97,.99,1.03),c*vec3(1.02,1.,.98),smoothstep(.2,.8,l));
           c*=mix(1.,smoothstep(1.15,.3,r),.85);
-          c+=(hs(vUv*vec2(1917.,1081.)+fract(time*7.))-.5)*.022;
+          c+=(hs(vUv*vec2(1917.,1081.)+fract(time*7.))-.5)*.012;
           gl_FragColor=vec4(c,1.);}`});
     composer.addPass(fx);
   }else{R.toneMapping=T.ACESFilmicToneMapping;R.outputEncoding=T.sRGBEncoding}
@@ -647,7 +650,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     {th:-35,r:6.4,y:8.2,ly:.2,sx:.18,fov:36},     // services : vue zénithale
     {th:-176,r:13.5,y:.42,ly:.95,sx:.1,fov:21}    // contact : face, très bas, longue focale
   ].map(k=>Object.assign({},k,{th:k.th*D}));
-  const ACC=[0xff7a2a,0x3d7bff,0xffb36b,0xff2a4a,0xdfe6ff].map(L);
+  const ACC=[0xff6a1a,0x6fa8ff,0xf2f4f8,0xff6a1a,0xf2f4f8].map(L);
   function smoothDamp(cur,tg,v,st,dt){const o=2/st,x=o*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=cur-tg,tm=(v+o*ch)*dt;return[tg+(ch+tm)*e,(v-o*tm)*e]}
   let prog=0,progV=0,tProg=0,lastTh=K[0].th,rollS=0,vel=0,lastY=scrollY,boostK=0,hold=false,keyB=false;
   addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
@@ -658,14 +661,14 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   function onScroll(){const m=document.documentElement.scrollHeight-innerHeight;tProg=m>0?scrollY/m:0}
   addEventListener('scroll',onScroll,{passive:true});onScroll();
   let W=0,H=0;function size(){W=innerWidth;H=innerHeight;R.setSize(W,H,false);cam.aspect=W/H;cam.updateProjectionMatrix();
-    if(composer){composer.setPixelRatio(DPR);composer.setSize(W,H);if(bloom)bloom.setSize(Math.round(W*DPR*.5),Math.round(H*DPR*.5))}}
+    if(composer){composer.setPixelRatio(DPR);composer.setSize(W,H);if(fx)fx.uniforms.px.value.set(1/(W*DPR),1/(H*DPR));if(bloom)bloom.setSize(Math.round(W*DPR*.5),Math.round(H*DPR*.5))}}
   size();addEventListener('resize',size);
   const acc=new T.Color(),tmpC=new T.Color();let fc=0,fpsAcc=0,fpsN=0,introT=-1,power=0;
   const clock=new T.Clock();
   (function loop(){requestAnimationFrame(loop);
     const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;fc++;
     if(fc>120){fpsAcc+=dt;if(++fpsN===50){const av=fpsAcc/fpsN;fpsAcc=0;fpsN=0;
-      if(av>.027&&DPR>.8){DPR=Math.max(.8,DPR-.2);R.setPixelRatio(DPR);size()}else if(av<.0185&&DPR<DPRMAX-.01){DPR=Math.min(DPRMAX,DPR+.1);R.setPixelRatio(DPR);size()}}}
+      if(av>.024&&DPR>.9){DPR=Math.max(.9,DPR-.15);R.setPixelRatio(DPR);size()}else if(av<.0185&&DPR<DPRMAX-.01){DPR=Math.min(DPRMAX,DPR+.1);R.setPixelRatio(DPR);size()}}}
     boostK+=(((hold||keyB)?1:0)-boostK)*Math.min(1,dt*((hold||keyB)?6:3));
     // ouverture : scan fil de fer -> la voiture apparaît -> les lumières s'allument une à une
     if(introT<0&&(carOK||REV.value>=1)&&document.body.classList.contains('ready'))introT=0;
@@ -691,7 +694,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     {const g=prog*(ACC.length-1),a=Math.min(ACC.length-2,Math.floor(g)),w=g-a,e=w*w*(3-2*w);acc.copy(ACC[a]).lerp(ACC[a+1],e)}
     const pulse=power*(1+boostK*1.4+arc*1.1+flash*1.5);
     [rimA,rimB].forEach(o=>{if(o.l){o.l.color.copy(acc);o.l.intensity=o.base*pulse}o.m.material.color.copy(acc).multiplyScalar((2.2+boostK*2+arc)*power+.02)});
-    [top,kick].forEach(o=>{if(o.l)o.l.intensity=o.base*power;o.m.material.color.setScalar(2.2*power+.01)});
+    [top,kick,key].forEach(o=>{if(o.l)o.l.intensity=o.base*power;o.m.material.color.setScalar(2.2*power+.01)});
     sun.intensity=.9*power;beam.visible=false;beam.material.opacity=power;
     ring.scale.setScalar(.001+.999*(1-Math.pow(1-Math.min(1,it/1.6),3)));dial.material.opacity=.75*Math.min(1,Math.max(0,(it-.8)/1.5));
     streak.material.uniforms.uT.value=t;streak.material.uniforms.uK.value=Math.min(1,boostK+arc*.8);
@@ -712,6 +715,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
      const rq=Math.min(1,ripT/1.4),re=1-Math.pow(1-rq,3);rip.scale.setScalar(4.1+re*11);rip.material.opacity=(1-rq)*.9*power;rip.material.color.copy(acc).multiplyScalar(3)}
     // la voiture a du poids : elle pivote et prend du roulis en suivant la vitesse du scroll
     {const v=Math.max(-1,Math.min(1,progV*5));yawS+=(-v*.22-yawS)*Math.min(1,dt*2.2);rollC+=(v*.025-rollC)*Math.min(1,dt*3);carRot.rotation.y=Math.PI+yawS;carRot.rotation.z=rollC}
+    sweep.visible=arc>.02&&power>.5;sweep.position.set(0,3.1,-8+16*ue);sweep.material.color.setScalar(9*arc);
     if(carOK&&!envSet){envSet=true;paints.forEach(m=>{m.envMap=cubeRT.texture;m.envMapIntensity=1.3;m.needsUpdate=true})}
     if(fc%2===0){car.visible=false;if(mirG)mirG.visible=false;cubeCam.update(R,S);car.visible=true;if(mirG)mirG.visible=true}
     if(fx){fx.uniforms.time.value=t;fx.uniforms.amt.value=Math.min(1.4,boostK+Math.abs(progV)*7)}
