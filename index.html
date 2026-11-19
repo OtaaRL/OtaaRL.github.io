@@ -744,7 +744,8 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     if(fc%6===0){const SH=['PLAN 01 — 3/4 AVANT','PLAN 02 — PROFIL','PLAN 03 — 3/4 ARRIÈRE','PLAN 04 — ZÉNITHAL','PLAN 05 — FACE'];
       vfS.textContent=SH[Math.round(prog*4)];vfL.textContent=Math.round(12/Math.tan(cam.fov*Math.PI/360))+' mm';
       const fr=Math.floor(t*24),ss=Math.floor(t)%60,mn=Math.floor(t/60)%60;vfT.textContent='00:'+String(mn).padStart(2,'0')+':'+String(ss).padStart(2,'0')+':'+String(fr%24).padStart(2,'0')}
-    window.__snd={arc,boost:boostK,power};
+    window.__snd={arc,boost:boostK,power,rev:REV.value};
+    if(!window.__replayIntro)window.__replayIntro=()=>{if(carOK&&introT>4){introT=.01;REV.value=0;power=0}};
     if(fx){fx.uniforms.time.value=t;fx.uniforms.amt.value=Math.min(1.4,boostK+Math.abs(progV)*7)}
     composer?composer.render():R.render(S,cam);
   })();
@@ -843,7 +844,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
    - « clac » sourd à l'arrivée sur chaque plan, petit tic au survol des boutons      */
 (function(){
   const btn=document.getElementById('snd');if(!btn||!(window.AudioContext||window.webkitAudioContext))return;
-  let ac=null,master,on=false,wind,windF,windG,eng,engF,engG,hum,humG;
+  let ac=null,master,on=false,scanO,scanG,scanN,scanF,scanNG,lastRev=0,wasPow=0,wind,windF,windG,eng,engF,engG,hum,humG;
   function noiseBuf(){const b=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate),d=b.getChannelData(0);let l=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;l=(l+.02*w)/1.02;d[i]=l*3.5}return b}
   function src(buf){const s=ac.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s}
   function build(){
@@ -851,18 +852,22 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     const comp=ac.createDynamicsCompressor();master.connect(comp);comp.connect(ac.destination);
     const nb=noiseBuf();
     // pièce : souffle grave très doux
-    const room=src(nb),rf=ac.createBiquadFilter();rf.type='lowpass';rf.frequency.value=320;const rg=ac.createGain();rg.gain.value=.16;room.connect(rf);rf.connect(rg);rg.connect(master);
+    const room=src(nb),rf=ac.createBiquadFilter();rf.type='lowpass';rf.frequency.value=320;const rg=ac.createGain();rg.gain.value=0;room.connect(rf);rf.connect(rg);rg.connect(master);
     // tubes lumineux : 100 Hz + harmoniques, à peine audibles
     humG=ac.createGain();humG.gain.value=0;humG.connect(master);
     [[100,.05],[200,.022],[300,.01]].forEach(([f,g])=>{const o=ac.createOscillator();o.frequency.value=f;const og=ac.createGain();og.gain.value=g;o.connect(og);og.connect(humG);o.start()});
     // nappe : deux sinus graves légèrement désaccordés
-    [[55,.05],[82.4,.035],[110.3,.02]].forEach(([f,g])=>{const o=ac.createOscillator();o.frequency.value=f;const og=ac.createGain();og.gain.value=g;const lfo=ac.createOscillator();lfo.frequency.value=.07+Math.random()*.05;const lg=ac.createGain();lg.gain.value=g*.6;lfo.connect(lg);lg.connect(og.gain);lfo.start();o.connect(og);og.connect(master);o.start()});
+    [[55,.025],[82.4,.016],[110.3,.008]].forEach(([f,g])=>{const o=ac.createOscillator();o.frequency.value=f;const og=ac.createGain();og.gain.value=g;const lfo=ac.createOscillator();lfo.frequency.value=.07+Math.random()*.05;const lg=ac.createGain();lg.gain.value=g*.6;lfo.connect(lg);lg.connect(og.gain);lfo.start();o.connect(og);og.connect(master);o.start()});
     // travelling : souffle filtré qui suit le mouvement de caméra
     wind=src(nb);windF=ac.createBiquadFilter();windF.type='bandpass';windF.Q.value=.8;windF.frequency.value=400;windG=ac.createGain();windG.gain.value=0;wind.connect(windF);windF.connect(windG);windG.connect(master);
     // moteur : dents de scie + bruit, filtrés
     eng=ac.createOscillator();eng.type='sawtooth';eng.frequency.value=48;const eng2=ac.createOscillator();eng2.type='square';eng2.frequency.value=24.2;
     engF=ac.createBiquadFilter();engF.type='lowpass';engF.frequency.value=260;engF.Q.value=4;engG=ac.createGain();engG.gain.value=0;
     eng.connect(engF);eng2.connect(engF);engF.connect(engG);engG.connect(master);eng.start();eng2.start();
+    scanO=ac.createOscillator();scanO.type='triangle';scanO.frequency.value=320;const trem=ac.createOscillator();trem.frequency.value=18;const tg=ac.createGain();tg.gain.value=.5;
+    scanG=ac.createGain();scanG.gain.value=0;const sm=ac.createGain();sm.gain.value=.5;trem.connect(tg);tg.connect(sm.gain);scanO.connect(sm);sm.connect(scanG);
+    scanN=src(nb);scanF=ac.createBiquadFilter();scanF.type='bandpass';scanF.Q.value=6;scanF.frequency.value=1200;scanNG=ac.createGain();scanNG.gain.value=0;scanN.connect(scanF);scanF.connect(scanNG);scanNG.connect(master);
+    scanG.connect(master);scanO.start();trem.start();
     tick();
   }
   function thump(f0,f1,dur,g){if(!ac||!on)return;const o=ac.createOscillator(),og=ac.createGain(),t=ac.currentTime;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur);
@@ -871,20 +876,25 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     const s=ac.createBufferSource();s.buffer=b;const bf=ac.createBiquadFilter();bf.type='bandpass';bf.frequency.value=f;bf.Q.value=3;const gg=ac.createGain();gg.gain.value=g;s.connect(bf);bf.connect(gg);gg.connect(master);s.start()}
   function powerOn(){// relais qui claquent, puis le bourdonnement des tubes monte
     [0,.14,.3].forEach((d,i)=>setTimeout(()=>{click(1800-i*300,.5,.05);thump(90,40,.35,.25)},d*1000));
-    if(humG){const t=ac.currentTime;humG.gain.cancelScheduledValues(t);humG.gain.setValueAtTime(0,t);humG.gain.linearRampToValueAtTime(.55,t+.6);humG.gain.linearRampToValueAtTime(.32,t+1.4)}}
-  window.__sndArrive=()=>{thump(70,34,.6,.32);click(5200,.06,.03)};
+    if(humG){const t=ac.currentTime;humG.gain.cancelScheduledValues(t);humG.gain.setValueAtTime(0,t);humG.gain.linearRampToValueAtTime(.3,t+.6);humG.gain.linearRampToValueAtTime(.1,t+1.6)}}
+  window.__sndArrive=()=>{thump(70,34,.6,.18);click(5200,.03,.03)};
   function tick(){requestAnimationFrame(tick);if(!ac)return;const st=window.__snd||{arc:0,boost:0,power:1},t=ac.currentTime;
-    windG.gain.setTargetAtTime(st.arc*.5,t,.12);windF.frequency.setTargetAtTime(300+st.arc*900,t,.15);
-    engG.gain.setTargetAtTime(st.boost*.32,t,.08);eng.frequency.setTargetAtTime(48+st.boost*95,t,.25);engF.frequency.setTargetAtTime(240+st.boost*900,t,.2)}
+    windG.gain.setTargetAtTime(st.arc*.22,t,.12);windF.frequency.setTargetAtTime(300+st.arc*900,t,.15);
+    const rv=st.rev===undefined?1:st.rev,act=rv>0&&rv<1?1:0;
+    scanG.gain.setTargetAtTime(act*.05,t,.1);scanO.frequency.setTargetAtTime(260+rv*900,t,.1);
+    scanNG.gain.setTargetAtTime(act*.18,t,.1);scanF.frequency.setTargetAtTime(600+rv*4200,t,.08);
+    if(act&&on&&Math.random()<.12)click(2500+Math.random()*3500,.05,.015);
+    if(st.power>.5&&wasPow<=.5&&on)powerOn();wasPow=st.power;
+    engG.gain.setTargetAtTime(st.boost*.2,t,.08);eng.frequency.setTargetAtTime(48+st.boost*95,t,.25);engF.frequency.setTargetAtTime(240+st.boost*900,t,.2)}
   function set(v){on=v;btn.classList.toggle('on',v);btn.setAttribute('aria-pressed',v);btn.setAttribute('aria-label',v?'Couper le son':'Activer le son');
     try{localStorage.setItem('otaa-snd',v?'1':'0')}catch(e){}
-    if(v){if(!ac)build();ac.resume();master.gain.setTargetAtTime(.5,ac.currentTime,.4);powerOn()}else if(ac)master.gain.setTargetAtTime(0,ac.currentTime,.15)}
+    if(v){const first=!ac;if(!ac)build();ac.resume();if(first&&window.__replayIntro)window.__replayIntro();master.gain.setTargetAtTime(.3,ac.currentTime,.4);if(!(window.__snd&&window.__snd.rev<1))powerOn()}else if(ac)master.gain.setTargetAtTime(0,ac.currentTime,.15)}
   btn.addEventListener('click',()=>set(!on));
   // le navigateur exige un geste : si le son était activé la dernière fois, on le relance au premier clic
   let want=false;try{want=localStorage.getItem('otaa-snd')==='1'}catch(e){}
   if(want){btn.classList.add('on');const go=e=>{if(e.target.closest('#snd'))return;removeEventListener('pointerdown',go);set(true)};addEventListener('pointerdown',go)}
-  document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('a,button');if(a&&a!==tick.last){tick.last=a;click(3200,.05,.02)}if(!a)tick.last=null});
-  document.addEventListener('visibilitychange',()=>{if(ac&&on)master.gain.setTargetAtTime(document.hidden?0:.5,ac.currentTime,.2)});
+  document.addEventListener('mouseover',e=>{const a=e.target.closest&&e.target.closest('a,button');if(a&&a!==tick.last){tick.last=a;click(3200,.025,.02)}if(!a)tick.last=null});
+  document.addEventListener('visibilitychange',()=>{if(ac&&on)master.gain.setTargetAtTime(document.hidden?0:.3,ac.currentTime,.2)});
 })();
 </script>
 </body>
