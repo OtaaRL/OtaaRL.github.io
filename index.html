@@ -53,6 +53,10 @@ main{position:relative;z-index:2}
 .route a:hover span{opacity:1}
 .route a.on i{background:var(--orange);transform:scale(1.6)}
 
+/* ---------- titre de chapitre pendant les transitions ---------- */
+.chap{position:fixed;left:0;right:0;top:46%;z-index:45;text-align:center;pointer-events:none;opacity:0;font:500 clamp(1.3rem,3vw,2.4rem)/1 var(--head);letter-spacing:.7em;text-transform:uppercase;color:#fff;text-shadow:0 0 30px rgba(255,255,255,.6);padding-left:.7em}
+.chap small{display:block;margin-top:16px;font:500 .72rem var(--head);letter-spacing:.5em;color:var(--orange);text-shadow:none}
+
 /* ---------- HUD discret ---------- */
 .hud{position:fixed;right:var(--pad);bottom:26px;z-index:40;display:flex;align-items:center;gap:14px;pointer-events:none;opacity:.9}
 .spd{text-align:right}
@@ -186,6 +190,7 @@ h1 span{color:var(--orange)}
   </ol>
 </aside>
 
+<div class="chap" id="chap" aria-hidden="true"></div>
 <div class="hud" aria-hidden="true">
   <div class="ss" id="ss">Supersonic</div>
   <div class="spd"><b id="kmh">48</b><small>KM/H</small></div>
@@ -667,14 +672,18 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat});rtg.samples=4}catch(e){rtg=undefined}
     composer=new T.EffectComposer(R,rtg);composer.addPass(new T.RenderPass(S,cam));
     bloom=new T.UnrealBloomPass(new T.Vector2(512,512),.38,.6,.86);composer.addPass(bloom);
-    fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},amt:{value:0},time:{value:0}},
+    fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},amt:{value:0},time:{value:0},flash:{value:0}},
       vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader:`uniform sampler2D tDiffuse;uniform float amt,time;varying vec2 vUv;
+      fragmentShader:`uniform sampler2D tDiffuse;uniform float amt,time,flash;varying vec2 vUv;
         float hs(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
         void main(){vec2 d=vUv-.5;float r=length(d);vec3 col=vec3(0.);
           for(int i=0;i<8;i++){float f=float(i)/7.;vec2 uv=vUv-d*amt*.07*f;float ca=(.0015+amt*.012)*r;
             col+=vec3(texture2D(tDiffuse,uv+d*ca).r,texture2D(tDiffuse,uv).g,texture2D(tDiffuse,uv-d*ca).b);}
           col/=8.;
+          float ang=atan(d.y,d.x);
+          float rays=pow(hs(vec2(floor(ang*70.),floor(time*16.))),5.)*smoothstep(.04,.65,r)+pow(hs(vec2(floor(ang*150.)+3.,floor(time*22.))),9.)*smoothstep(.1,.8,r);
+          col+=vec3(1.,.82,.62)*rays*flash*2.2;
+          col=mix(col,vec3(1.,.93,.86),flash*flash*.9);
           vec3 st=vec3(0.);for(int j=-6;j<=6;j++){vec3 c=texture2D(tDiffuse,vUv+vec2(float(j)*.012,0.)).rgb;st+=max(c-vec3(.85),0.)*(1.-abs(float(j))/7.);}
           col+=st*vec3(1.,.62,.4)*.05;
           float l=dot(col,vec3(.299,.587,.114));
@@ -700,7 +709,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     KC.push({th,r:Math.hypot(k.p[0],k.p[2]),y:k.p[1],lx:k.lx,ly:k.ly,lz:k.lz,sx:k.sx})});
   // amorti critique (ease-in / ease-out naturel, sans à-coups)
   function smoothDamp(cur,tg,v,st,dt){const o=2/st,x=o*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=cur-tg,tm=(v+o*ch)*dt;return[tg+(ch+tm)*e,(v-o*tm)*e]}
-  let progV=0,lastTh=KC[0].th,rollS=0;
+  let progV=0,lastTh=KC[0].th,rollS=0,phase=0,trT=-1,trDir=1;const chap=$('#chap');
   let prog=0,tProg=0,vel=0,lastY=scrollY,speed=16,boostK=0,ssK=0,gauge=100,hold=false,keyB=false,wasB=false,ssTime=0;
   addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('a,button,input,textarea,.panel,.top'))return;hold=true});
   ['pointerup','pointercancel','blur'].forEach(ev=>addEventListener(ev,()=>{hold=false;if(ev==='blur')keyB=false}));
@@ -723,14 +732,23 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     if(boosting&&!wasB){ringT=0}wasB=boosting;
     boostK+=((boosting?1:0)-boostK)*Math.min(1,dt*(boosting?7:3.5));
     vel+=((Math.abs(scrollY-lastY)/Math.max(dt,.001))-vel)*Math.min(1,dt*5);lastY=scrollY;
-    const target=16+Math.min(50,vel*.03)+boostK*52;
+    const target=16+Math.min(50,vel*.03)+boostK*52+(trT>=0?Math.pow(Math.min(1,trT/.8),2)*(trT<.8?1:Math.max(0,1-(trT-.8)/1.0))*45:0);
     speed+=(target-speed)*Math.min(1,dt*(boosting?2.2:1.4));
     ssTime=speed>58?ssTime+dt:0;ssK+=((ssTime>.35?1:0)-ssK)*Math.min(1,dt*5);
     const sk=Math.min(1,Math.max(0,(speed-16)/50));
     // jour -> nuit selon le scroll (la bascule se fait dans la brume)
-    const nr=Math.min(1,Math.max(0,(prog-.3)/.32)),ne=nr*nr*(3-2*nr),bump=Math.pow(1-Math.abs(ne*2-1),1.4);
-    const night=ne>=.5;dayG.visible=!night;nightG.visible=night;
-    S.fog.color.copy(HAZE).lerp(NFOG,ne);S.fog.near=(70-30*ne)*(1-.9*bump)+2;S.fog.far=(560-230*ne)*(1-.88*bump)+18;
+    // vraie transition : séquence chronométrée déclenchée en franchissant le seuil (dans les deux sens)
+    if(trT<0){if(!phase&&prog>.46){phase=1;trT=0;trDir=1}else if(phase&&prog<.4){phase=0;trT=0;trDir=-1}}
+    if(trT>=0){trT+=dt;if(trT>2.1){trT=-1}}
+    let ne=phase,env=0;
+    if(trT>=0){const q=Math.min(1,Math.max(0,(trT-.55)/.4)),e=q*q*(3-2*q);ne=trDir>0?e:1-e;
+      env=trT<.8?Math.pow(trT/.8,2.2):Math.pow(Math.max(0,1-(trT-.8)/1.2),1.6);
+      const tt=Math.min(1,Math.max(0,(trT-.55)/.35))*(1-Math.min(1,Math.max(0,(trT-1.35)/.5)));
+      chap.style.opacity=tt;chap.style.transform='scale('+(1+(1-tt)*.06)+')';
+      chap.innerHTML=trDir>0?'Nightfall<small>CHAPITRE 02</small>':'Golden hour<small>CHAPITRE 01</small>'}
+    else chap.style.opacity=0;
+    const bump=0,night=ne>=.5;dayG.visible=!night;nightG.visible=night;
+    S.fog.color.copy(HAZE).lerp(NFOG,ne);S.fog.near=70-30*ne;S.fog.far=560-230*ne;
     skyMat.uniforms.n.value=ne;sunM.material.uniforms.o.value=1-ne;sunGlow.material.opacity=.35*(1-ne);
     sunM.position.copy(SUN).multiplyScalar(850);sunM.position.y-=ne*170;sunGlow.position.copy(sunM.position);
     ridges.forEach(m=>m.material.color.copy(m.userData.c).lerp(RNIGHT,ne));
@@ -795,7 +813,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     // léger roulis quand la caméra tourne vite (effet steadicam)
     const rl=Math.max(-.05,Math.min(.05,-(th-lastTh)/Math.max(dt,1e-3)*.03));lastTh=th;rollS+=(rl-rollS)*Math.min(1,dt*2.5);cam.rotateZ(rollS);
     cam.setViewOffset(W,H,mob?0:-cr('sx')*W,0,W,H);
-    cam.fov=(mob?58:40)+sk*4+boostK*9;cam.updateProjectionMatrix();
+    cam.fov=(mob?58:40)+sk*4+boostK*9+env*14;cam.updateProjectionMatrix();
     pMat.uniforms.sc.value=H*DPR/(2*Math.tan(cam.fov*Math.PI/360));
 
     // HUD
@@ -803,7 +821,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     garc.setAttribute('stroke-dasharray',(235.6*gauge/100).toFixed(1)+' 314.2');gnum.textContent=Math.round(gauge);
     ssEl.classList.toggle('on',ssK>.5);
 
-    if(fx){fx.uniforms.amt.value=boostK*.55+ssK*.12;fx.uniforms.time.value=t}
+    if(fx){fx.uniforms.amt.value=boostK*.55+ssK*.12+env*1.5;fx.uniforms.time.value=t;fx.uniforms.flash.value=env*env}
     if((envTick++%(bump>.02?12:90))===0){car.visible=false;cubeCam.position.set(0,1.2,car.position.z);cubeCam.update(R,S);car.visible=true}
     composer?composer.render():R.render(S,cam);
   })();
