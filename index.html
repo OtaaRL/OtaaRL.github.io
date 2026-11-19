@@ -310,7 +310,7 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
 </head>
 <body>
 
-<div class="pre" id="pre" aria-hidden="true"><div class="pre-in"><span class="pre-n"><span id="pren">0</span><small>%</small></span><span class="pre-bar"><i id="preb"></i></span><span class="pre-t">OtaaRL — Night drive</span></div></div>
+<div class="pre" id="pre" aria-hidden="true"><div class="pre-in"><span class="pre-n"><span id="pren">0</span><small>%</small></span><span class="pre-bar"><i id="preb"></i></span><span class="pre-t">OtaaRL — Studio</span></div></div>
 <div class="cur" id="cur"></div><div class="cur-r" id="curr"></div>
 <div class="frame" aria-hidden="true"><i></i><i></i><i></i><i></i><b>Thomas Rubulotta — Portfolio 2026</b></div>
 
@@ -356,13 +356,13 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
 <main>
 <section id="hero">
   <div class="hero">
-    <span class="label">Thomas Rubulotta — Artiste 3D</span>
+    <span class="label">Studio 3D &amp; motion · Esport</span>
     <h1 data-split>OTAA<span class="rl">RL</span></h1>
     <div class="stripe"><i></i><i></i></div>
-    <p><b>Je mets en scène Rocket League.</b> Scènes 3D, affiches et vidéos pour les équipes et événements esport, et des sites web qui vont avec.</p>
+    <p><b>L'image de votre structure esport, en 3D.</b> Annonces de roster, affiches, trailers et sites web pour les équipes et les événements. Ils m'ont fait confiance : Karmine Corp, GroundZero, Lakitue, Voltage.</p>
     <div class="btns">
-      <a class="btn o" href="#works"><span>Voir mes créations</span></a>
-      <a class="btn" href="#contact"><span>Me contacter</span></a>
+      <a class="btn o" href="#works"><span>Voir les projets</span></a>
+      <a class="btn" href="#contact"><span>Lancer un projet</span></a>
     </div>
     <div class="keys">Scroll pour avancer · <kbd>B</kbd> pour booster</div>
   </div>
@@ -382,7 +382,7 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
   <div class="panel rv">
     <span class="label">Étape 02 · Profil</span>
     <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2 data-split>Ota.</h2><small>Thomas Rubulotta</small></div></div>
-    <p>Créateur 3D, designer et développeur web. Je réalise des scènes, affiches et vidéos pour des équipes et événements esport.</p>
+    <p>Studio indépendant 3D, motion et web au service de l'esport. J'accompagne équipes et organisateurs pour donner de l'impact à leurs annonces, de l'idée au rendu final.</p>
     <p><!-- ✏️ Complète avec ton parcours --></p>
     <ul class="skills">
       <li>3D<i style="--v:92%"></i></li>
@@ -405,8 +405,8 @@ body.ready .hero [data-split] .ch,.rv.in [data-split] .ch,[data-split].in .ch{tr
 <section id="contact">
   <div class="panel rv">
     <span class="label">Arrivée · Contact</span>
-    <h2 data-split>On roule ensemble ?</h2>
-    <p>Un roster à annoncer, une affiche, une vidéo ou un site : raconte-moi ton projet.</p>
+    <h2 data-split>Un projet esport ?</h2>
+    <p>Annonce de roster, affiche de match, trailer d'événement ou site : décrivez votre projet, je vous réponds avec une proposition.</p>
     <a class="mail" id="mail" href="mailto:Otaapro@gmail.com">Otaapro@gmail.com</a>
     <a class="btn o" id="mail2" href="mailto:Otaapro@gmail.com"><span>Écrire un e-mail</span></a>
     <div class="soc" id="soc"></div>
@@ -463,7 +463,7 @@ const SITE = {
 };
 /* ======================================================= */
 const $=s=>document.querySelector(s);
-const tp=['OTAARL','NIGHT DRIVE','3D ARTIST','NEON','ROCKET LEAGUE','RLCS','MOTION'].map(w=>`<span>${w}</span><span>✦</span>`).join('');
+const tp=['OTAARL STUDIO','ESPORT','3D','MOTION','ROCKET LEAGUE','RLCS','WEB'].map(w=>`<span>${w}</span><span>✦</span>`).join('');
 
 // garage des créations : une grande vignette + une bande de miniatures
 (function(){
@@ -490,8 +490,8 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   if(!window.THREE)return;
   const T=THREE,cv=$('#gl'),MOB=matchMedia('(max-width:900px)').matches;
   const R=new T.WebGLRenderer({canvas:cv,antialias:false,powerPreference:'high-performance'});
-  let DPR=Math.min(devicePixelRatio,MOB?1.25:1.5);const DPRMAX=DPR;R.setPixelRatio(DPR);
-  R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
+  let DPR=Math.min(devicePixelRatio,MOB?1.2:1.35);const DPRMAX=DPR;R.setPixelRatio(DPR);
+  R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;R.shadowMap.autoUpdate=false;
   const L=h=>new T.Color(h).convertSRGBToLinear();
   const S=new T.Scene(),BG=L(0x0a0b10);
   const cam=new T.PerspectiveCamera(28,1,.1,400);
@@ -509,7 +509,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   S.add(new T.Mesh(new T.SphereGeometry(150,48,24),backM));
 
   // ---------- sol : miroir sombre qui s'éteint en s'éloignant ----------
-  if(T.Reflector){const mir=new T.Reflector(new T.CircleGeometry(80,96),{textureWidth:Math.round(innerWidth*DPR*.6),textureHeight:Math.round(innerHeight*DPR*.6),color:0x5a5a5a,clipBias:.002});mir.rotation.x=-Math.PI/2;S.add(mir)}
+  if(T.Reflector&&!MOB){const mir=new T.Reflector(new T.CircleGeometry(30,64),{textureWidth:Math.round(innerWidth*DPR*.42),textureHeight:Math.round(innerHeight*DPR*.42),color:0x5a5a5a,clipBias:.002});mir.rotation.x=-Math.PI/2;S.add(mir)}
   const fade=new T.Mesh(new T.CircleGeometry(80,96),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{base:{value:BG.clone()}},
     vertexShader:'varying vec2 q;void main(){q=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader:'varying vec2 q;uniform vec3 base;float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}void main(){float r=length(q);float a=mix(.7,1.,smoothstep(3.,18.,r));a=clamp(a+(h(floor(q*60.))-.5)*.04,0.,1.);gl_FragColor=vec4(base*.9,a);}'}));
@@ -521,7 +521,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const dialT=(()=>{const c=document.createElement('canvas');c.width=c.height=1024;const g=c.getContext('2d');g.translate(512,512);
     g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=2;g.beginPath();g.arc(0,0,452,0,7);g.stroke();
     for(let i=0;i<120;i++){const a=i/120*Math.PI*2,l=i%10?10:26;g.strokeStyle='rgba(255,255,255,'+(i%10?.25:.7)+')';g.lineWidth=i%10?1.5:2.5;g.beginPath();g.moveTo(Math.cos(a)*470,Math.sin(a)*470);g.lineTo(Math.cos(a)*(470+l),Math.sin(a)*(470+l));g.stroke()}
-    g.fillStyle='rgba(255,255,255,.6)';g.font='600 20px sans-serif';g.textAlign='center';['000','090','180','270'].forEach((t,i)=>{g.save();g.rotate(i*Math.PI/2);g.fillText(t,0,-420);g.restore()});
+    g.fillStyle='rgba(255,255,255,.6)';g.font='600 20px sans-serif';g.textAlign='center';['OTAARL STUDIO','ESPORT','3D · MOTION','WEB'].forEach((t,i)=>{g.save();g.rotate(i*Math.PI/2);g.fillText(t,0,-420);g.restore()});
     return new T.CanvasTexture(c)})();
   const dial=new T.Mesh(new T.PlaneGeometry(9.4,9.4),new T.MeshBasicMaterial({map:dialT,transparent:true,depthWrite:false,opacity:.75}));dial.rotation.x=-Math.PI/2;dial.position.y=.012;S.add(dial);
   const ringM=new T.MeshBasicMaterial({color:L(0xff7a2a)});
@@ -534,9 +534,9 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const top=softbox(7,2.6,new T.Vector3(0,6.4,0),1.8,new T.Color(1,1,1));
   const rimA=softbox(.3,5.2,new T.Vector3(-5.6,2.7,-3.6),10,L(0xff7a2a));
   const rimB=softbox(.3,5.2,new T.Vector3(5.6,2.7,3.6),10,L(0xff7a2a));
-  const kick=softbox(5,1,new T.Vector3(0,1.4,-8.5),2.2,new T.Color(.82,.88,1));
+  const kick=softbox(6,.6,new T.Vector3(0,3.2,10),2.2,new T.Color(.82,.88,1));
   const sun=new T.DirectionalLight(0xffffff,.9);sun.position.set(1.2,10,1.8);sun.castShadow=true;
-  sun.shadow.mapSize.set(MOB?1024:2048,MOB?1024:2048);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:2,far:20});sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;S.add(sun);
+  sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:2,far:20});sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;S.add(sun);
   S.add(new T.HemisphereLight(0xbfc8ff,0x050508,.12));
   // faisceau sous la softbox + poussières
   const beam=new T.Mesh(new T.CylinderGeometry(3.4,4.6,6.4,48,1,true),new T.ShaderMaterial({transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,
@@ -548,6 +548,21 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   S.add(new T.Points(dg,new T.PointsMaterial({color:0xfff2e0,size:1.4,sizeAttenuation:false,transparent:true,opacity:.18,blending:T.AdditiveBlending,depthWrite:false})));
 
   // ---------- la Fennec : peinture vernie, vitres, roues ----------
+  // livrée : camo numérique OtaaRL en diagonale (arrière / bas), filet orange, logo sur les portières
+  const logoT=(()=>{const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');g.clearRect(0,0,1024,256);
+    g.font='800 150px "Barlow Condensed",Impact,sans-serif';g.textAlign='center';g.textBaseline='middle';
+    try{g.letterSpacing='18px'}catch(e){}g.fillStyle='#fff';g.fillText('OTAA',430,132);g.fillStyle='#ff7a2a';g.fillText('RL',765,132);
+    const t=new T.CanvasTexture(c);t.anisotropy=8;return t})();
+  function livery(mat){mat.onBeforeCompile=sh=>{sh.uniforms.uLogo={value:logoT};
+    sh.vertexShader='varying vec3 vW;varying vec3 vWN;\n'+sh.vertexShader.replace('#include <project_vertex>','#include <project_vertex>\n vW=(modelMatrix*vec4(transformed,1.)).xyz;vWN=normalize(mat3(modelMatrix)*objectNormal);');
+    sh.fragmentShader='varying vec3 vW;varying vec3 vWN;uniform sampler2D uLogo;\nfloat ch(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}\nfloat cn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(ch(i),ch(i+vec3(1,0,0)),f.x),mix(ch(i+vec3(0,1,0)),ch(i+vec3(1,1,0)),f.x),f.y),mix(mix(ch(i+vec3(0,0,1)),ch(i+vec3(1,0,1)),f.x),mix(ch(i+vec3(0,1,1)),ch(i+vec3(1,1,1)),f.x),f.y),f.z);}\n'+
+      sh.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+        {vec3 q=floor(vW*7.)/7.;float a=cn(q*1.25),b=cn(q*3.3+7.);
+         vec3 camo=a>.56?vec3(.055,.06,.075):vec3(.012,.014,.02);if(a<.3)camo=vec3(.15,.16,.18);if(b>.78)camo=vec3(1.,.26,.05);
+         float v=vW.z*.42-vW.y*.5+.36;float reg=step(0.,v);float edge=1.-smoothstep(.0,.03,abs(v));
+         float pm=smoothstep(.04,.14,diffuseColor.b-max(diffuseColor.r,diffuseColor.g));reg*=pm;edge*=pm;diffuseColor.rgb=mix(diffuseColor.rgb,camo,reg);diffuseColor.rgb=mix(diffuseColor.rgb,vec3(1.,.3,.06),edge*step(.3,vW.y));
+         float side=smoothstep(.6,.85,abs(vWN.x));vec2 lu=vec2((vW.x>0.?-vW.z:vW.z)/3.+.5,(vW.y-.5)/.62);
+         if(lu.x>0.&&lu.x<1.&&lu.y>0.&&lu.y<1.){vec4 lg=texture2D(uLogo,lu);diffuseColor.rgb=mix(diffuseColor.rgb,lg.rgb,lg.a*side*.92*pm);}}`)}}
   const car=new T.Group();S.add(car);const carRot=new T.Group();carRot.rotation.y=Math.PI;car.add(carRot);const wheels=[],paints=[],heads=[];
   if(T.GLTFLoader)new T.GLTFLoader().load('assets/car.glb',g=>{
     const m=g.scene;m.updateMatrixWorld(true);let box=new T.Box3().setFromObject(m),sz=box.getSize(new T.Vector3());
@@ -556,7 +571,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     m.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;
       const one=!Array.isArray(o.material),arr=one?[o.material]:o.material;
       const out=arr.map(mt=>{let n=mt;
-        if(/Paint/i.test(mt.name)){n=new T.MeshPhysicalMaterial({name:mt.name,color:mt.color,map:mt.map,normalMap:mt.normalMap,roughness:.3,metalness:.5,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:.75});paints.push(n)}
+        if(/Paint|Body/i.test(mt.name)){n=new T.MeshPhysicalMaterial({name:mt.name,color:mt.color,map:mt.map,normalMap:mt.normalMap,roughness:.3,metalness:.5,clearcoat:1,clearcoatRoughness:.03,envMapIntensity:.75});livery(n);paints.push(n)}
         else if(/Window|Glass/i.test(mt.name)){mt.roughness=.03;mt.metalness=.9;mt.color=new T.Color(0x07080b);mt.envMapIntensity=.7}
         else if(mt.isMeshStandardMaterial){mt.envMapIntensity=.6}
         if(n.emissiveMap){n.emissive=new T.Color(1,1,1);n.emissiveIntensity=1.6;heads.push(n)}
@@ -567,13 +582,13 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     ws.forEach(w=>{const b=new T.Box3().setFromObject(w),ctr=b.getCenter(new T.Vector3()),s2=b.getSize(new T.Vector3());
       const pv=new T.Object3D();w.parent.add(pv);pv.position.copy(w.parent.worldToLocal(ctr.clone()));pv.updateMatrixWorld(true);pv.attach(w);
       const axW=s2.x<s2.z?new T.Vector3(1,0,0):new T.Vector3(0,0,1);wheels.push({pv,axL:axW.transformDirection(new T.Matrix4().copy(pv.matrixWorld).invert()),r:s2.y/2})});
-    window.__carReady=true},undefined,()=>{window.__carReady=true});
+    R.shadowMap.needsUpdate=true;window.__carReady=true},undefined,()=>{window.__carReady=true});
   else window.__carReady=true;
 
   // ---------- rendu : HDR -> bloom -> tone mapping ACES + étalonnage ----------
   let composer=null,bloom=null,fx=null;
   if(T.EffectComposer&&T.UnrealBloomPass&&T.ShaderPass){
-    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat,type:T.HalfFloatType});rtg.samples=(MOB||DPR>=1.4)?2:4}catch(e){rtg=new T.WebGLRenderTarget(8,8,{type:T.HalfFloatType})}
+    let rtg;try{rtg=new T.WebGLMultisampleRenderTarget(8,8,{format:T.RGBAFormat,type:T.HalfFloatType});rtg.samples=MOB?0:2}catch(e){rtg=new T.WebGLRenderTarget(8,8,{type:T.HalfFloatType})}
     composer=new T.EffectComposer(R,rtg);composer.addPass(new T.RenderPass(S,cam));
     bloom=new T.UnrealBloomPass(new T.Vector2(256,256),.3,.5,1.05);composer.addPass(bloom);
     fx=new T.ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0},ex:{value:.92},amt:{value:0}},
@@ -594,11 +609,11 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   // ---------- caméra : un plan par section, en arcs autour de la voiture ----------
   const D=Math.PI/180;
   const K=[
-    {th:145,r:9.4,y:1.05,ly:.78,sx:.14},   // accueil : 3/4 avant, caméra basse
-    {th:92,r:9.8,y:.75,ly:.72,sx:.22},     // créations : profil pur, ras du sol
-    {th:28,r:8.6,y:2.4,ly:.7,sx:.2},       // profil : 3/4 arrière plongeant
-    {th:-40,r:6.8,y:7.2,ly:.25,sx:.18},    // services : vue du plafond
-    {th:-178,r:10.8,y:.5,ly:1,sx:.1}       // contact : face, très bas
+    {th:148,r:9.6,y:1.0,ly:.8,sx:.14,fov:30},     // accueil : 3/4 avant, caméra basse
+    {th:92,r:12.5,y:.62,ly:.72,sx:.22,fov:22},    // créations : profil au télé, ras du sol
+    {th:32,r:8.4,y:2.6,ly:.65,sx:.2,fov:32},      // profil : 3/4 arrière plongeant
+    {th:-35,r:6.4,y:8.2,ly:.2,sx:.18,fov:36},     // services : vue zénithale
+    {th:-176,r:13.5,y:.42,ly:.95,sx:.1,fov:21}    // contact : face, très bas, longue focale
   ].map(k=>Object.assign({},k,{th:k.th*D}));
   const ACC=[0xff7a2a,0x3d7bff,0xffb36b,0xff2a4a,0xdfe6ff].map(L);
   function smoothDamp(cur,tg,v,st,dt){const o=2/st,x=o*dt,e=1/(1+x+.48*x*x+.235*x*x*x),ch=cur-tg,tm=(v+o*ch)*dt;return[tg+(ch+tm)*e,(v-o*tm)*e]}
@@ -622,16 +637,18 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
     boostK+=(((hold||keyB)?1:0)-boostK)*Math.min(1,dt*((hold||keyB)?6:3));
     vel+=((scrollY-lastY)/Math.max(dt,.001)-vel)*Math.min(1,dt*6);lastY=scrollY;
     {const sd=smoothDamp(prog,tProg,progV,.7,dt);prog=sd[0];progV=sd[1]}
-    const f=Math.min(K.length-1-1e-6,Math.max(0,prog*(K.length-1))),i=Math.floor(f),u=f-i;
-    const kc=j=>K[Math.max(0,Math.min(K.length-1,j))];
-    const cr=key=>{const a0=kc(i-1)[key],a1=kc(i)[key],a2=kc(i+1)[key],a3=kc(i+2)[key];return .5*(2*a1+(-a0+a2)*u+(2*a0-5*a1+4*a2-a3)*u*u+(-a0+3*a1-3*a2+a3)*u*u*u)};
-    const mob=W<900,dk=mob?1.45:Math.max(1,1.55/cam.aspect),th=cr('th')+mm.x*.06,rad=cr('r'),cy=Math.max(.35,cr('y'));
-    const sh=boostK*.012;
-    cam.position.set(Math.sin(th)*rad*dk+(Math.random()-.5)*sh,cy*dk-mm.y*.15+(Math.random()-.5)*sh,Math.cos(th)*rad*dk);
-    cam.lookAt(0,cr('ly'),0);
-    const rl=Math.max(-.04,Math.min(.04,-(th-lastTh)/Math.max(dt,1e-3)*.025));lastTh=th;rollS+=(rl-rollS)*Math.min(1,dt*2.5);cam.rotateZ(rollS);
-    cam.setViewOffset(W,H,mob?0:-cr('sx')*W,mob?Math.round(H*.18):0,W,H);
-    cam.fov=(mob?40:28)+boostK*2.5;cam.updateProjectionMatrix();
+    // chaque section tient son plan, puis la caméra part en mouvement de grue (ease in-out, élévation et recul à mi-course)
+    const f=Math.min(K.length-1-1e-6,Math.max(0,prog*(K.length-1))),i=Math.floor(f),u0=f-i;
+    const uu=Math.min(1,Math.max(0,(u0-.1)/.8)),ue=uu<.5?4*uu*uu*uu:1-Math.pow(-2*uu+2,3)/2,arc=Math.sin(ue*Math.PI);
+    const A=K[i],B=K[i+1],lp=k=>A[k]+(B[k]-A[k])*ue;
+    const mob=W<900,dk=mob?1.45:Math.max(1,1.55/cam.aspect);
+    const th=lp('th')+mm.x*.07+Math.sin(t*.13)*.025,rad=(lp('r')+arc*2.2)*dk*(30/Math.max(20,lp('fov'))*.55+.45),cy=Math.max(.32,lp('y')+arc*1.6)*dk;
+    const hx=Math.sin(t*.9)*.006+Math.sin(t*2.3)*.003,hy=Math.cos(t*1.1)*.005,sh=boostK*.012;
+    cam.position.set(Math.sin(th)*rad+hx+(Math.random()-.5)*sh,cy-mm.y*.15+hy+(Math.random()-.5)*sh,Math.cos(th)*rad);
+    cam.lookAt(0,lp('ly'),0);
+    const rl=Math.max(-.035,Math.min(.035,-(th-lastTh)/Math.max(dt,1e-3)*.02));lastTh=th;rollS+=(rl-rollS)*Math.min(1,dt*2.5);cam.rotateZ(rollS);
+    cam.setViewOffset(W,H,mob?0:-lp('sx')*W,mob?Math.round(H*.18):0,W,H);
+    cam.fov=(mob?lp('fov')+10:lp('fov'))+arc*4+boostK*2.5;cam.updateProjectionMatrix();
     // couleur d'accent selon la section
     {const g=prog*(ACC.length-1),a=Math.min(ACC.length-2,Math.floor(g)),w=g-a,e=w*w*(3-2*w);acc.copy(ACC[a]).lerp(ACC[a+1],e)}
     [rimA,rimB].forEach(o=>{if(o.l){o.l.color.copy(acc);o.l.intensity=o.base*(1+boostK*1.4)}o.m.material.color.copy(acc).multiplyScalar(2.2+boostK*2)});
@@ -655,7 +672,7 @@ document.querySelectorAll('.rv').forEach((e,i)=>{e.style.transitionDelay=(i%3)*8
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   // --- marquee du hero ---
-  const m=['OTAARL','3D ARTIST','ROCKET LEAGUE','MOTION','NIGHT DRIVE'].map(w=>'<span>'+w+' —</span>').join('');
+  const m=['OTAARL STUDIO','ESPORT','3D','MOTION','ROCKET LEAGUE'].map(w=>'<span>'+w+' —</span>').join('');
   $('#hmq').innerHTML=m+m+m+m;
 
   // --- typo cinétique : découpe en mots et en lettres (conserve les balises internes) ---
