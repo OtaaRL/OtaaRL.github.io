@@ -128,10 +128,8 @@ h1 .rl{color:var(--orange)}
 .prof img{width:64px;height:64px;object-fit:cover;border-radius:50%}
 .prof h2{margin:0}
 .prof small{display:block;font:500 .72rem var(--head);letter-spacing:.24em;text-transform:uppercase;color:var(--mut);margin-top:6px}
-.skills{list-style:none;margin:26px 0 4px;display:grid;gap:14px}
-.skills li{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:14px;font:500 .74rem var(--head);letter-spacing:.24em;text-transform:uppercase;color:var(--soft)}
-.skills i{display:block;height:1px;background:rgba(255,255,255,.16);position:relative}
-.skills i::after{content:"";position:absolute;left:0;top:-1px;height:3px;width:var(--v);background:var(--orange);border-radius:2px}
+.skills{list-style:none;margin:24px 0 4px;display:flex;flex-wrap:wrap;gap:8px}
+.skills li{padding:8px 14px;border:1px solid var(--line);font:500 .68rem var(--head);letter-spacing:.22em;text-transform:uppercase;color:var(--soft)}
 .stats{display:flex;flex-wrap:wrap;gap:18px 30px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
 .stats b{display:block;font:500 2rem/1 var(--head);letter-spacing:.02em}
 .stats span{font-size:.85rem;color:var(--mut)}
@@ -404,12 +402,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--orange);outline-off
     <div class="prof"><img src="assets/avatar.jpg" alt="Avatar d'OtaaRL"><div><h2 data-split>Ota.</h2><small>Thomas Rubulotta</small></div></div>
     <p>Moi c'est Thomas, alias OtaaRL : créateur indépendant en 3D, motion, web et coaching. Un seul interlocuteur, de l'idée au rendu final.</p>
     <p><!-- ✏️ Complète avec ton parcours --></p>
-    <ul class="skills">
-      <li>3D<i style="--v:92%"></i></li>
-      <li>Motion<i style="--v:80%"></i></li>
-      <li>Web<i style="--v:74%"></i></li>
-      <li>Coaching<i style="--v:68%"></i></li>
-    </ul>
+    <ul class="skills"><li>3D</li><li>Motion</li><li>Web</li><li>Coaching</li></ul>
     <div class="stats"><div><b>200+</b><span>Heures de coaching</span></div><div><b>7+</b><span>Projets</span></div><div><b>5</b><span>Clients</span></div><div><b>2022</b><span>Depuis</span></div></div>
   </div>
 </section>
